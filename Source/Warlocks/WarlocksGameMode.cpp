@@ -9,18 +9,4 @@ AWarlocksGameMode::AWarlocksGameMode()
 {
 	// use our custom PlayerController class
 	PlayerControllerClass = AWarlocksPlayerController::StaticClass();
-
-	// set default pawn class to our Blueprinted character
-	// static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Warlocks/Blueprints/BP_WarlocksCharacter"));
-	// if (PlayerPawnBPClass.Class)
-	// {
-	// 	DefaultPawnClass = PlayerPawnBPClass.Class;
-	// }
-	//
-	// // set default controller to our Blueprinted controller
-	// static ConstructorHelpers::FClassFinder<APlayerController> PlayerControllerBPClass(TEXT("/Game/Warlocks/Blueprints/BP_WarlocksPlayerController"));
-	// if (PlayerControllerBPClass.Class)
-	// {
-	// 	PlayerControllerClass = PlayerControllerBPClass.Class;
-	// }
 }

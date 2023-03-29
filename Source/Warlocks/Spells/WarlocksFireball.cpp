@@ -43,18 +43,20 @@ AWarlocksFireball::AWarlocksFireball()
 	InitialLifeSpan = 2;
 }
 
-void AWarlocksFireball::Tick(float DeltaTime)
+void AWarlocksFireball::BeginPlay()
 {
-	Super::Tick(DeltaTime);
-}
-
-void AWarlocksFireball::OnSpawn(const FVector& Direction)
-{
-	ProjectileMovement->Velocity = Direction * ProjectileSpeed;
+	ProjectileMovement->Velocity = GetActorRotation().Vector() * ProjectileSpeed;
 	ProjectileMovement->InitialSpeed = ProjectileSpeed;
 	ProjectileMovement->MaxSpeed = ProjectileSpeed;
 
 	CollisionSphere->SetSphereRadius(ProjectileHitboxRadius);
+
+	Super::BeginPlay();
+}
+
+void AWarlocksFireball::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

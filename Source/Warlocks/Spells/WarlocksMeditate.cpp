@@ -22,6 +22,16 @@ AWarlocksMeditate::AWarlocksMeditate()
 	InitialLifeSpan = 10;
 }
 
+void AWarlocksMeditate::BeginPlay()
+{
+	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
+	if (!Warlock) return;
+	
+	RootComponent->AttachToComponent(Warlock->GetRootComponent(), { EAttachmentRule::SnapToTarget, false });
+	
+	Super::BeginPlay();
+}
+
 void AWarlocksMeditate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
@@ -41,12 +51,4 @@ void AWarlocksMeditate::Tick(float DeltaTime)
 	if (!Warlock) return;
 
 	Warlock->ModifyHealth(HealPerTick);
-}
-
-void AWarlocksMeditate::OnSpawn(const FVector& Direction)
-{
-	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
-	if (!Warlock) return;
-	
-	RootComponent->AttachToComponent(Warlock->GetRootComponent(), { EAttachmentRule::SnapToTarget, false });
 }

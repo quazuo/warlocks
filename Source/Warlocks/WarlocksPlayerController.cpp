@@ -53,11 +53,9 @@ float AWarlocksPlayerController::GetRemainingCastTime() const
 
 float AWarlocksPlayerController::GetRemainingCastTimePercent() const
 {
-	if (SpellCastTimer.IsValid())
+	if (CurrentlyCastedSpell && SpellCastTimer.IsValid())
 	{
 		const auto RemainingCastTime = GetWorldTimerManager().GetTimerRemaining(SpellCastTimer);
-		
-		if (!CurrentlyCastedSpell) return 0;
 		
 		const auto SpellInstance = CurrentlyCastedSpell.GetDefaultObject();
 		if (!SpellInstance) return 0;
@@ -169,8 +167,7 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	if (!Warlock) return;
 
 	StopChannelingSpell();
-
-	// cast spell
+	
 	if (SpellInstance->SpellCastType == ESpellCastType::Instant)
 	{
 		CastSpell(SpellSlot, CharacterLoc, Rotation);
@@ -205,7 +202,6 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 		SpellClass, Location, Rotation, SpawnParams);
 	if (!Spell) return;
 
-	Spell->OnSpawn(Rotation.Vector());
 	if (SpellClass.GetDefaultObject()->SpellCastType == ESpellCastType::Channel)
 	{
 		CurrentlyChanneledSpell = Spell;

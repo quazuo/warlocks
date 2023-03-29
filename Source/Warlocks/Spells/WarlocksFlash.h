@@ -17,12 +17,12 @@ class WARLOCKS_API AWarlocksFlash : public AWarlocksSpell
 public:
 	AWarlocksFlash();
 
+	virtual void BeginPlay() override;
+	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void OnSpawn(const FVector& Direction) override;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Particle)
 	UParticleSystem* OnCastParticle;
 };

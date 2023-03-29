@@ -20,12 +20,12 @@ class WARLOCKS_API AWarlocksMeditate : public AWarlocksSpell
 public:
 	AWarlocksMeditate();
 
+	virtual void BeginPlay() override;
+	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void OnSpawn(const FVector &Direction) override;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Projectile)
 	UParticleSystemComponent* ContinuousParticle;
 

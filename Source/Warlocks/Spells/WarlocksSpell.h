@@ -48,9 +48,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
 	ESpellCastType SpellCastType;
 
-	UFUNCTION()
-	virtual void OnSpawn(const FVector& Direction) { unimplemented(); }
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Icon)
 	UTexture2D* SpellIcon;
 };
