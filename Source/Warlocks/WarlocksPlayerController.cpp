@@ -184,11 +184,15 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 
 void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Location, const FRotator Rotation)
 {
+	CurrentlyCastedSpell = nullptr;
+	
 	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
 	if (!Warlock) return;
 
 	Warlock->StopCastingSpell();
+	StartSpellCooldown(SpellSlot);
 
+	// spawn the spell actor
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetCharacter();
 	SpawnParams.Instigator = GetInstigator();
@@ -206,9 +210,6 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 		CurrentlyChanneledSpell = Spell;
 		Warlock->StartChannelingSpell();
 	}
-
-	CurrentlyCastedSpell = nullptr;
-	StartSpellCooldown(SpellSlot);
 }
 
 void AWarlocksPlayerController::RotateCharacter(const FRotator& Rotation)
