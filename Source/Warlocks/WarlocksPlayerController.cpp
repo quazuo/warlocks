@@ -115,9 +115,8 @@ void AWarlocksPlayerController::OnInputStarted()
 
 	StopChannelingSpell();
 	StopMovement();
-
-	FHitResult Hit;
-	if (GetHitResultUnderCursor(ECC_Visibility, true, Hit))
+	
+	if (FHitResult Hit; GetHitResultUnderCursor(ECC_Visibility, true, Hit))
 	{
 		CachedDestination = Hit.Location;
 	}

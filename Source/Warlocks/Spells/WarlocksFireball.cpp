@@ -29,7 +29,7 @@ AWarlocksFireball::AWarlocksFireball()
 	ProjectileMovement->ProjectileGravityScale = 0;
 
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMeshComponent"));
-	ProjectileMesh->SetRelativeScale3D(FVector(0.09, 0.09, 0.09));
+	ProjectileMesh->SetRelativeScale3D(FVector(0.09));
 	ProjectileMesh->SetupAttachment(RootComponent);
 
 	PointLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("PointLight"));
@@ -65,13 +65,12 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
 {
 	if (OtherActor == this || OtherActor == GetOwner()) return;
 
-	AWarlocksCharacter* Enemy = Cast<AWarlocksCharacter>(OtherActor);
-	if (Enemy)
+	
+	if (AWarlocksCharacter* Enemy = Cast<AWarlocksCharacter>(OtherActor))
 	{
 		Enemy->Launch(-1 * SweepResult.Normal);
-
-		const auto Controller = Cast<AWarlocksPlayerController>(Enemy->GetController());
-		if (Controller)
+		
+		if (const auto Controller = Cast<AWarlocksPlayerController>(Enemy->GetController()))
 		{
 			Controller->StopChannelingSpell();
 		}
