@@ -50,4 +50,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Icon)
 	UTexture2D* SpellIcon;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Info)
+	UStringTable* SpellInfo;
 };
