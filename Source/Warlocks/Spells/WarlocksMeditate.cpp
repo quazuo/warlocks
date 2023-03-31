@@ -50,5 +50,5 @@ void AWarlocksMeditate::Tick(float DeltaTime)
 	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
 	if (!Warlock) return;
 
-	Warlock->ModifyHealth(HealPerTick);
+	Warlock->ModifyHealth(Power);
 }

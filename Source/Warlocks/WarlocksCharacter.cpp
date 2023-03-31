@@ -1,9 +1,12 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "WarlocksCharacter.h"
+
+#include "WarlocksGameMode.h"
 #include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AWarlocksCharacter::AWarlocksCharacter()
 {
@@ -32,20 +35,32 @@ AWarlocksCharacter::AWarlocksCharacter()
 
 void AWarlocksCharacter::Tick(float DeltaSeconds)
 {
-    Super::Tick(DeltaSeconds);
+	Super::Tick(DeltaSeconds);
 
-	auto CharMovement = GetCharacterMovement();
-	
+	// check if character should stop falling, if so change mode to walking
+	const auto CharMovement = GetCharacterMovement();
 	if (CharMovement->MovementMode == MOVE_Falling && CharMovement->Velocity.X == 0 && CharMovement->Velocity.Y == 0)
 	{
 		CharMovement->SetMovementMode(MOVE_Walking);
+	}
+
+	// apply damage if standing on lava
+	if (const auto GameMode = Cast<AWarlocksGameMode>(UGameplayStatics::GetGameMode(this)))
+	{
+		const auto SafeZoneRadius = GameMode->GetCurrentSafeZoneRadius();
+		const auto MyLocation = GetActorLocation();
+
+		if (abs(MyLocation.X) > SafeZoneRadius || abs(MyLocation.Y) > SafeZoneRadius)
+		{
+			ModifyHealth(-1 * GameMode->LavaTickDamage);
+		}
 	}
 }
 
 void AWarlocksCharacter::Launch(FVector Direction)
 {
 	if (!GetController()) return;
-	
+
 	GetController()->StopMovement();
 	LaunchCharacter(Direction * 500, false, false);
 }

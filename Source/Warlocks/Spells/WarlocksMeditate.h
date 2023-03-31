@@ -31,7 +31,4 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Projectile)
 	UPointLightComponent* PointLight;
-
-private:
-	const float HealPerTick = 0.1;
 };

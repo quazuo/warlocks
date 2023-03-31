@@ -34,7 +34,7 @@ public:
 	float ProjectileHitboxRadius;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
-	float Damage;
+	float Power;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
 	float Range;

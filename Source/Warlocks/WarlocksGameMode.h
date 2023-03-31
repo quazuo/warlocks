@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/StaticMeshActor.h"
 #include "GameFramework/GameModeBase.h"
 #include "WarlocksGameMode.generated.h"
 
@@ -13,6 +14,19 @@ class AWarlocksGameMode : public AGameModeBase
 
 public:
 	AWarlocksGameMode();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float LavaTickDamage = 0.08;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float CurrentSafeZoneScale = 30;
+
+	UFUNCTION()
+	float GetCurrentSafeZoneRadius();
+
+private:
+	UPROPERTY()
+	AStaticMeshActor* SafeZone;
 };
 
 
