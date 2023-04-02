@@ -19,7 +19,7 @@ AWarlocksCharacter::AWarlocksCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	auto CharMove = GetCharacterMovement();
+	const auto CharMove = GetCharacterMovement();
 	CharMove->bOrientRotationToMovement = true; // Rotate character to moving direction
 	CharMove->RotationRate = FRotator(0, 640, 0);
 	CharMove->bConstrainToPlane = true;
@@ -33,7 +33,7 @@ AWarlocksCharacter::AWarlocksCharacter()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
-void AWarlocksCharacter::Tick(float DeltaSeconds)
+void AWarlocksCharacter::Tick(const float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
@@ -57,7 +57,7 @@ void AWarlocksCharacter::Tick(float DeltaSeconds)
 	}
 }
 
-void AWarlocksCharacter::Launch(FVector Direction)
+void AWarlocksCharacter::Launch(const FVector Direction)
 {
 	if (!GetController()) return;
 
@@ -65,7 +65,7 @@ void AWarlocksCharacter::Launch(FVector Direction)
 	LaunchCharacter(Direction * 500, false, false);
 }
 
-void AWarlocksCharacter::ModifyHealth(float Value)
+void AWarlocksCharacter::ModifyHealth(const float Value)
 {
 	Health += Value;
 	if (Health > MaxHealth)

@@ -34,8 +34,7 @@ void AWarlocksMeditate::BeginPlay()
 
 void AWarlocksMeditate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
-	if (Warlock)
+	if (const auto Warlock = Cast<AWarlocksCharacter>(GetOwner()))
 	{
 		Warlock->StopChannelingSpell();
 	}
@@ -46,9 +45,9 @@ void AWarlocksMeditate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AWarlocksMeditate::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
-	if (!Warlock) return;
-
-	Warlock->ModifyHealth(Power);
+	
+	if (const auto Warlock = Cast<AWarlocksCharacter>(GetOwner()))
+	{
+		Warlock->ModifyHealth(Power);
+	}
 }
