@@ -15,6 +15,8 @@ class AWarlocksGameMode : public AGameModeBase
 public:
 	AWarlocksGameMode();
 
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float LavaTickDamage = 0.08;
 

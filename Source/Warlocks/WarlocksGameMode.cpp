@@ -23,6 +23,13 @@ AWarlocksGameMode::AWarlocksGameMode()
 	}
 }
 
+void AWarlocksGameMode::BeginPlay()
+{
+	UGameplayStatics::CreatePlayer(GetWorld());
+	
+	Super::BeginPlay();
+}
+
 float AWarlocksGameMode::GetCurrentSafeZoneRadius()
 {
 	const float Width = SafeZone->GetStaticMeshComponent()->GetStaticMesh()->GetBoundingBox().GetSize().X;

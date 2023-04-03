@@ -77,12 +77,12 @@ void AWarlocksPlayerController::BeginPlay()
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
 
-	TArray<AActor*> Cameras;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraActor::StaticClass(), Cameras);
-	if (!Cameras.IsEmpty())
-	{
-		SetViewTargetWithBlend(Cameras.Last());
-	}
+	// TArray<AActor*> Cameras;
+	// UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraActor::StaticClass(), Cameras);
+	// if (!Cameras.IsEmpty())
+	// {
+	// 	SetViewTargetWithBlend(Cameras.Last());
+	// }
 }
 
 void AWarlocksPlayerController::SetupInputComponent()
