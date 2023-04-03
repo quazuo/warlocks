@@ -97,7 +97,7 @@ public:
 
 	// Spell wrappers
 	UFUNCTION(BlueprintCallable)
-		FORCEINLINE TSubclassOf<AWarlocksSpell> GetSpellClass(ESpell SpellSlot) const
+	FORCEINLINE TSubclassOf<AWarlocksSpell> GetSpellClass(ESpell SpellSlot) const
 	{
 		switch (SpellSlot)
 		{
@@ -105,10 +105,11 @@ public:
 		case ESpell::SpellW: return WSpellClass;
 		case ESpell::SpellE: return ESpellClass;
 		case ESpell::SpellR: return RSpellClass;
-		default: unimplemented(); return nullptr;
+		default: unimplemented();
+			return nullptr;
 		}
 	}
-	
+
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE AWarlocksSpell* GetSpellCDO(ESpell SpellSlot) const
 	{
@@ -129,7 +130,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Spell)
 	float GetRemainingCastTimePercent() const;
-	
+
 	UFUNCTION()
 	void StopChannelingSpell();
 
@@ -138,7 +139,7 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	void OnInputStarted();
+	void OnMoveInputStarted();
 
 	UFUNCTION()
 	void StartSpellCast(ESpell SpellSlot);
@@ -157,10 +158,11 @@ private:
 		case ESpell::SpellW: return &WSpellCooldownTimer;
 		case ESpell::SpellE: return &ESpellCooldownTimer;
 		case ESpell::SpellR: return &RSpellCooldownTimer;
-		default: unimplemented(); return nullptr;
+		default: unimplemented();
+			return nullptr;
 		}
 	}
-	
+
 	TSubclassOf<AWarlocksSpell> CurrentlyCastedSpell;
 
 	UPROPERTY()

@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "WarlocksUtils.h"
 #include "Camera/CameraActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -32,14 +33,14 @@ float AWarlocksPlayerController::GetRemainingCooldownPercent(ESpell SpellSlot)
 {
 	const auto SpellClass = GetSpellClass(SpellSlot);
 	const auto CooldownTimer = GetCooldownTimer(SpellSlot);
-	
+
 	if (SpellClass && CooldownTimer->IsValid())
 	{
 		const auto RemainingCooldown = GetWorldTimerManager().GetTimerRemaining(*CooldownTimer);
-		
+
 		const auto SpellInstance = SpellClass.GetDefaultObject();
 		if (!SpellInstance) return 0;
-		
+
 		return RemainingCooldown / SpellInstance->Cooldown;
 	}
 
@@ -56,10 +57,10 @@ float AWarlocksPlayerController::GetRemainingCastTimePercent() const
 	if (CurrentlyCastedSpell && SpellCastTimer.IsValid())
 	{
 		const auto RemainingCastTime = GetWorldTimerManager().GetTimerRemaining(SpellCastTimer);
-		
+
 		const auto SpellInstance = CurrentlyCastedSpell.GetDefaultObject();
 		if (!SpellInstance) return 0;
-		
+
 		return RemainingCastTime / SpellInstance->CastTime;
 	}
 
@@ -94,7 +95,7 @@ void AWarlocksPlayerController::SetupInputComponent()
 	{
 		// mouse input events
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Started, this,
-		                                   &AWarlocksPlayerController::OnInputStarted);
+		                                   &AWarlocksPlayerController::OnMoveInputStarted);
 
 		// spell cast events
 		EnhancedInputComponent->BindAction(QSpellCastAction, ETriggerEvent::Started, this,
@@ -108,14 +109,14 @@ void AWarlocksPlayerController::SetupInputComponent()
 	}
 }
 
-void AWarlocksPlayerController::OnInputStarted()
+void AWarlocksPlayerController::OnMoveInputStarted()
 {
 	if (GetCharacter()->GetCharacterMovement()->MovementMode == MOVE_Falling) return;
 	if (GetWorldTimerManager().GetTimerRemaining(SpellCastTimer) > 0) return;
 
 	StopChannelingSpell();
 	StopMovement();
-	
+
 	if (FHitResult Hit; GetHitResultUnderCursor(ECC_Visibility, true, Hit))
 	{
 		CachedDestination = Hit.Location;
@@ -129,44 +130,44 @@ void AWarlocksPlayerController::OnInputStarted()
 
 void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 {
-	UWorld* World = GetWorld();
-	if (!World) return;
-	
+	// check if we can cast the spell
+	if (!GetWorld()) return;
 	if (GetRemainingCooldown(SpellSlot) > 0) return;
 	if (CurrentlyCastedSpell) return;
 
+	// check if character is spawned
+	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
+	if (!Warlock) return;
+
 	const auto SpellClass = GetSpellClass(SpellSlot);
-	if (!SpellClass) return;
+	if (!SpellClass) return; // no spell in slot
 
 	const auto SpellInstance = SpellClass.GetDefaultObject();
 
+	// if warlock was knocked back and hasn't landed yet, only instant spells can be cast [subject for change]
 	ACharacter* ControlledCharacter = GetCharacter();
 	if (SpellInstance->SpellCastType != ESpellCastType::Instant
-		&& ControlledCharacter->GetCharacterMovement()->MovementMode == MOVE_Falling) return;
+		&& ControlledCharacter->GetCharacterMovement()->MovementMode == MOVE_Falling)
+		return;
 
 	StopMovement();
 
 	const FVector CharacterLoc = ControlledCharacter->GetActorLocation();
 	FRotator Rotation = FRotator::ZeroRotator;
 
-	if (SpellInstance->TargetingMode == ETarget::Floor)
-	{
-		FHitResult Hit;
-		if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit)) return;
+	// get location of cursor and rotator pointing to it, so we can rotate the character in that direction.
+	// if it cannot be found and the spell needs it (i.e. it's floor targeted) return immediately.
+	FHitResult Hit;
+	if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit) && SpellInstance->TargetingMode == ETarget::Floor) return;
 
-		FVector CursorLocation = Hit.Location;
-		CursorLocation.SetComponentForAxis(EAxis::Z, CharacterLoc.Z);
-		const FVector CursorDirection = CursorLocation - CharacterLoc;
-		Rotation = CursorDirection.Rotation();
-
-		RotateCharacter(Rotation);
-	}
-
-	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (!Warlock) return;
+	FVector CursorLocation = Hit.Location;
+	CursorLocation.SetComponentForAxis(EAxis::Z, CharacterLoc.Z);
+	const FVector CursorDirection = CursorLocation - CharacterLoc;
+	Rotation = CursorDirection.Rotation();
+	RotateCharacter(Rotation);
 
 	StopChannelingSpell();
-	
+
 	if (SpellInstance->SpellCastType == ESpellCastType::Instant)
 	{
 		CastSpell(SpellSlot, CharacterLoc, Rotation);
@@ -185,24 +186,44 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Location, const FRotator Rotation)
 {
 	CurrentlyCastedSpell = nullptr;
-	
+
 	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
 	if (!Warlock) return;
+
+	const auto SpellClass = GetSpellClass(SpellSlot);
+	if (!SpellClass) return;
+
+	const auto SpellInstance = SpellClass.GetDefaultObject();
 
 	Warlock->StopCastingSpell();
 	StartSpellCooldown(SpellSlot);
 
-	// spawn the spell actor
+	// spawn the spell actor(s)
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetCharacter();
 	SpawnParams.Instigator = GetInstigator();
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	const auto SpellClass = GetSpellClass(SpellSlot);
-	if (!SpellClass) return;
+	// if the spell is of type `Projectile`, spawn multiple actors spread around
+	if (SpellInstance->SpellType == ESpellType::Projectile)
+	{
+		TArray<FRotator> Rotations = WarlocksUtils::GetSpreadRotators(Rotation, SpellInstance->ProjectileCount,
+		                                                              SpellInstance->ProjectileSpread);
 
+		for (const auto& R : Rotations)
+		{
+			const AWarlocksSpell* Spell = GetWorld()->SpawnActor<AWarlocksSpell>(
+				SpellClass, Location, R, SpawnParams);
+			if (!Spell) return;
+		}
+
+		return;
+	}
+
+	// if it's not of type `Projectile`, just spawn it in
 	AWarlocksSpell* Spell = GetWorld()->SpawnActor<AWarlocksSpell>(
 		SpellClass, Location, Rotation, SpawnParams);
+
 	if (!Spell) return;
 
 	if (SpellClass.GetDefaultObject()->SpellCastType == ESpellCastType::Channel)
@@ -231,9 +252,11 @@ void AWarlocksPlayerController::StartSpellCooldown(ESpell SpellSlot)
 	const auto SpellClass = GetSpellClass(SpellSlot);
 	if (!SpellClass) return;
 
-	auto CooldownTimer = GetCooldownTimer(SpellSlot);
-	
-	GetWorldTimerManager().SetTimer(*CooldownTimer, []{}, SpellClass.GetDefaultObject()->Cooldown, false);
+	const auto CooldownTimer = GetCooldownTimer(SpellSlot);
+
+	GetWorldTimerManager().SetTimer(*CooldownTimer, []
+	{
+	}, SpellClass.GetDefaultObject()->Cooldown, false);
 }
 
 void AWarlocksPlayerController::StopChannelingSpell()

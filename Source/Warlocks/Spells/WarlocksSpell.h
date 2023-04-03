@@ -22,16 +22,31 @@ class WARLOCKS_API AWarlocksSpell : public AActor
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
-	float Cooldown;
+	float Cooldown = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
-	float CastTime;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
+		meta = (EditCondition = "SpellCastType != ESpellCastType::Instant"))
+	float CastTime = 1;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
+		meta = (EditCondition = "SpellCastType == ESpellCastType::Channel"))
+	float ChannelTime = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
-	float ProjectileSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
+		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
+	float ProjectileSpeed = 1000;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
-	float ProjectileHitboxRadius;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
+		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
+	int ProjectileCount = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
+		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
+	int ProjectileSpread = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
+		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
+	float ProjectileHitboxRadius = 50;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
 	float Power;

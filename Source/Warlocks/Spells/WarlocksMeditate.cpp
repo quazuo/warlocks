@@ -18,8 +18,8 @@ AWarlocksMeditate::AWarlocksMeditate()
 	PointLight->SetLightColor(FLinearColor(0, 0.53, 0.29));
 	PointLight->SetupAttachment(RootComponent);
 
+	// enable ticking because this spell heals the caster every tick
 	PrimaryActorTick.bCanEverTick = true;
-	InitialLifeSpan = 10;
 }
 
 void AWarlocksMeditate::BeginPlay()
@@ -28,6 +28,8 @@ void AWarlocksMeditate::BeginPlay()
 	if (!Warlock) return;
 	
 	RootComponent->AttachToComponent(Warlock->GetRootComponent(), { EAttachmentRule::SnapToTarget, false });
+
+	SetLifeSpan(ChannelTime);
 	
 	Super::BeginPlay();
 }
@@ -44,10 +46,10 @@ void AWarlocksMeditate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWarlocksMeditate::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-	
 	if (const auto Warlock = Cast<AWarlocksCharacter>(GetOwner()))
 	{
 		Warlock->ModifyHealth(Power);
 	}
+
+	Super::Tick(DeltaTime);
 }
