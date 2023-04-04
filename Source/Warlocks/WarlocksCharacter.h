@@ -37,8 +37,14 @@ public:
 	float MaxHealth = 100;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float Health = 10; // todo - change to MaxHealth
+	float Health = MaxHealth;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsDead = false;
 
 	UFUNCTION(BlueprintCallable)
 	void ModifyHealth(float Value);
+
+	UFUNCTION(BlueprintCallable)
+	void Die();
 };

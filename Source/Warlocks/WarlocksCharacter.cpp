@@ -49,8 +49,8 @@ void AWarlocksCharacter::Tick(const float DeltaSeconds)
 	{
 		const auto SafeZoneRadius = GameMode->GetCurrentSafeZoneRadius();
 		const auto MyLocation = GetActorLocation();
-
-		if (abs(MyLocation.X) > SafeZoneRadius || abs(MyLocation.Y) > SafeZoneRadius)
+		
+		if (pow(MyLocation.X, 2) + pow(MyLocation.Y, 2) > pow(SafeZoneRadius, 2))
 		{
 			ModifyHealth(-1 * GameMode->LavaTickDamage);
 		}
@@ -67,6 +67,8 @@ void AWarlocksCharacter::Launch(const FVector Direction)
 
 void AWarlocksCharacter::ModifyHealth(const float Value)
 {
+	if (bIsDead) return;
+	
 	Health += Value;
 	if (Health > MaxHealth)
 	{
@@ -74,6 +76,18 @@ void AWarlocksCharacter::ModifyHealth(const float Value)
 	}
 	else if (Health <= 0)
 	{
-		// todo death
+		Health = 0;
+		Die();
 	}
+}
+
+void AWarlocksCharacter::Die()
+{
+	bIsDead = true;
+	StopCastingSpell();
+	StopChannelingSpell();
+	GetController()->StopMovement();
+	SetActorEnableCollision(false);
+	
+	// todo - probably some more behavior, perhaps letting the GameMode know we died or something
 }

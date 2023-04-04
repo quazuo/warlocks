@@ -111,6 +111,12 @@ void AWarlocksPlayerController::SetupInputComponent()
 
 void AWarlocksPlayerController::OnMoveInputStarted()
 {
+	if (!GetCharacter()) return;
+
+	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
+	if (!Warlock) return;
+
+	if (Warlock->bIsDead) return;
 	if (GetCharacter()->GetCharacterMovement()->MovementMode == MOVE_Falling) return;
 	if (GetWorldTimerManager().GetTimerRemaining(SpellCastTimer) > 0) return;
 
@@ -135,12 +141,13 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	if (GetRemainingCooldown(SpellSlot) > 0) return;
 	if (CurrentlyCastedSpell) return;
 
-	// check if character is spawned
+	// check if character is spawned and is alive
 	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (!Warlock) return;
+	if (!Warlock || Warlock->bIsDead) return;
 
+	// check if there is a spell in the slot
 	const auto SpellClass = GetSpellClass(SpellSlot);
-	if (!SpellClass) return; // no spell in slot
+	if (!SpellClass) return;
 
 	const auto SpellInstance = SpellClass.GetDefaultObject();
 

@@ -63,11 +63,12 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                               const FHitResult& SweepResult)
 {
-	if (OtherActor == this || OtherActor == GetOwner() || OtherActor->Owner == GetOwner()) return;
+	if (OtherActor == this || OtherActor == GetOwner()) return;
 	
 	if (AWarlocksCharacter* Enemy = Cast<AWarlocksCharacter>(OtherActor))
 	{
 		Enemy->Launch(-1 * SweepResult.Normal);
+		Enemy->ModifyHealth(-1 * Power);
 		
 		if (const auto Controller = Cast<AWarlocksPlayerController>(Enemy->GetController()))
 		{
