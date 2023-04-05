@@ -67,8 +67,11 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
 	
 	if (AWarlocksCharacter* Enemy = Cast<AWarlocksCharacter>(OtherActor))
 	{
-		Enemy->Launch(-1 * SweepResult.Normal);
-		Enemy->ModifyHealth(-1 * Power);
+		const auto OwnerWarlock = Cast<AWarlocksCharacter>(GetOwner());
+		const auto OwnerController = OwnerWarlock ? OwnerWarlock->GetController() : nullptr;
+		UGameplayStatics::ApplyDamage(Enemy, Power, OwnerController, this, nullptr);
+
+		Enemy->Launch(-1 * SweepResult.Normal, Knockback);
 		
 		if (const auto Controller = Cast<AWarlocksPlayerController>(Enemy->GetController()))
 		{

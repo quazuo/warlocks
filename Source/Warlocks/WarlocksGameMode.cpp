@@ -26,6 +26,7 @@ AWarlocksGameMode::AWarlocksGameMode()
 void AWarlocksGameMode::BeginPlay()
 {
 	UGameplayStatics::CreatePlayer(GetWorld());
+	UGameplayStatics::CreatePlayer(GetWorld());
 	
 	Super::BeginPlay();
 }

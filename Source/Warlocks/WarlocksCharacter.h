@@ -13,12 +13,12 @@ class AWarlocksCharacter : public ACharacter
 
 public:
 	AWarlocksCharacter();
-	
+
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
 
 	UFUNCTION()
-	void Launch(FVector Direction);
+	void Launch(FVector Direction, const float Force);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
 	bool bIsCastingSpell = false;
@@ -35,7 +35,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float MaxHealth = 100;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float Health = MaxHealth;
 
@@ -43,7 +43,11 @@ public:
 	bool bIsDead = false;
 
 	UFUNCTION(BlueprintCallable)
-	void ModifyHealth(float Value);
+	virtual float TakeDamage(const float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
+	                         AActor* DamageCauser) override;
+
+	UFUNCTION(BlueprintCallable)
+	float RestoreHealth(const float HealAmount);
 
 	UFUNCTION(BlueprintCallable)
 	void Die();

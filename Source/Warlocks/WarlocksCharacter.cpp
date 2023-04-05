@@ -5,6 +5,7 @@
 #include "WarlocksGameMode.h"
 #include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -49,36 +50,52 @@ void AWarlocksCharacter::Tick(const float DeltaSeconds)
 	{
 		const auto SafeZoneRadius = GameMode->GetCurrentSafeZoneRadius();
 		const auto MyLocation = GetActorLocation();
-		
+
 		if (pow(MyLocation.X, 2) + pow(MyLocation.Y, 2) > pow(SafeZoneRadius, 2))
 		{
-			ModifyHealth(-1 * GameMode->LavaTickDamage);
+			TakeDamage(GameMode->LavaTickDamage, FDamageEvent(), nullptr, this);
 		}
 	}
 }
 
-void AWarlocksCharacter::Launch(const FVector Direction)
+void AWarlocksCharacter::Launch(const FVector Direction, const float Force)
 {
 	if (!GetController()) return;
 
 	GetController()->StopMovement();
-	LaunchCharacter(Direction * 500, false, false);
+	LaunchCharacter(Direction * Force, false, false);
 }
 
-void AWarlocksCharacter::ModifyHealth(const float Value)
+float AWarlocksCharacter::TakeDamage(const float DamageAmount, FDamageEvent const& DamageEvent,
+                                     AController* EventInstigator, AActor* DamageCauser)
 {
-	if (bIsDead) return;
-	
-	Health += Value;
-	if (Health > MaxHealth)
-	{
-		Health = MaxHealth;
-	}
-	else if (Health <= 0)
+	if (bIsDead) return 0;
+
+	const auto AppliedDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	Health -= AppliedDamage;
+	if (Health <= 0)
 	{
 		Health = 0;
 		Die();
 	}
+
+	return AppliedDamage;
+}
+
+float AWarlocksCharacter::RestoreHealth(const float HealAmount)
+{
+	if (bIsDead) return 0;
+
+	const auto PreviousHealth = Health;
+	
+	Health += HealAmount;
+	if (Health > MaxHealth)
+	{
+		Health = MaxHealth;
+	}
+
+	return Health - PreviousHealth;
 }
 
 void AWarlocksCharacter::Die()
@@ -87,10 +104,10 @@ void AWarlocksCharacter::Die()
 	StopCastingSpell();
 	StopChannelingSpell();
 	SetActorEnableCollision(false);
-	if (const auto Controller = GetController())
+	if (const auto CharacterController = GetController())
 	{
-		Controller->StopMovement();
+		CharacterController->StopMovement();
 	}
-	
+
 	// todo - probably some more behavior, perhaps letting the GameMode know we died or something
 }

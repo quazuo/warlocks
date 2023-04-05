@@ -29,7 +29,7 @@ void AWarlocksMeditate::BeginPlay()
 	
 	RootComponent->AttachToComponent(Warlock->GetRootComponent(), { EAttachmentRule::SnapToTarget, false });
 
-	SetLifeSpan(ChannelTime);
+	SetLifeSpan(Duration);
 	
 	Super::BeginPlay();
 }
@@ -48,7 +48,7 @@ void AWarlocksMeditate::Tick(float DeltaTime)
 {
 	if (const auto Warlock = Cast<AWarlocksCharacter>(GetOwner()))
 	{
-		Warlock->ModifyHealth(Power);
+		Warlock->RestoreHealth(Power);
 	}
 
 	Super::Tick(DeltaTime);

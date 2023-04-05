@@ -42,7 +42,7 @@ class AWarlocksPlayerController : public APlayerController
 public:
 	AWarlocksPlayerController();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UPROPERTY(BlueprintReadOnly, Category = Input)
 	bool bIsCastingSpell = false;
 
 	// FX for click-to-move
@@ -68,6 +68,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* RSpellCastAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* DebugAction;
+
+	// debug thing
+	UFUNCTION()
+	void DoDebugThing();
 
 	// dummy spell-casting wrapper UFunctions; used by actions
 	UFUNCTION()

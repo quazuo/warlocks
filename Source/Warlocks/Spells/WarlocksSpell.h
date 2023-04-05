@@ -21,17 +21,29 @@ class WARLOCKS_API AWarlocksSpell : public AActor
 	GENERATED_BODY()
 	
 public:
+	// numerical stats
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
 	float Cooldown = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
 		meta = (EditCondition = "SpellCastType != ESpellCastType::Instant"))
 	float CastTime = 1;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
-		meta = (EditCondition = "SpellCastType == ESpellCastType::Channel"))
-	float ChannelTime = 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	float Duration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	float Power;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	float Knockback;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	float Range;
+
+	// projectile related things
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
 		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
 	float ProjectileSpeed = 1000;
@@ -48,11 +60,7 @@ public:
 		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
 	float ProjectileHitboxRadius = 50;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
-	float Power;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
-	float Range;
+	// categories
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
 	ETarget TargetingMode;
@@ -62,6 +70,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
 	ESpellCastType SpellCastType;
+
+	// external asset refs
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Icon)
 	UTexture2D* SpellIcon;

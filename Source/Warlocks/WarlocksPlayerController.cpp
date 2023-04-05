@@ -21,6 +21,15 @@ AWarlocksPlayerController::AWarlocksPlayerController()
 	CachedDestination = FVector::ZeroVector;
 }
 
+void AWarlocksPlayerController::DoDebugThing()
+{
+	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
+	if (Warlock)
+	{
+		Warlock->Launch(FVector::ForwardVector, 1000);
+	}
+}
+
 float AWarlocksPlayerController::GetRemainingCooldown(ESpell SpellSlot)
 {
 	const auto CooldownTimer = GetCooldownTimer(SpellSlot);
@@ -106,6 +115,10 @@ void AWarlocksPlayerController::SetupInputComponent()
 		                                   &AWarlocksPlayerController::StartESpellCast);
 		EnhancedInputComponent->BindAction(RSpellCastAction, ETriggerEvent::Started, this,
 		                                   &AWarlocksPlayerController::StartRSpellCast);
+
+		// debug event
+		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this,
+										   &AWarlocksPlayerController::DoDebugThing);
 	}
 }
 
@@ -117,7 +130,7 @@ void AWarlocksPlayerController::OnMoveInputStarted()
 	if (!Warlock) return;
 
 	if (Warlock->bIsDead) return;
-	if (GetCharacter()->GetCharacterMovement()->MovementMode == MOVE_Falling) return;
+	// if (GetCharacter()->GetCharacterMovement()->MovementMode == MOVE_Falling) return;
 	if (GetWorldTimerManager().GetTimerRemaining(SpellCastTimer) > 0) return;
 
 	StopChannelingSpell();
