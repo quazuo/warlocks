@@ -8,7 +8,7 @@
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "WarlocksUtils.h"
+#include "FWarlocksUtils.h"
 #include "Camera/CameraActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -214,7 +214,7 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 	// if the spell is of type `Projectile`, spawn multiple actors spread around
 	if (SpellInstance->SpellType == ESpellType::Projectile)
 	{
-		TArray<FRotator> Rotations = WarlocksUtils::GetSpreadRotators(Rotation, SpellInstance->ProjectileCount,
+		TArray<FRotator> Rotations = FWarlocksUtils::GetSpreadRotators(Rotation, SpellInstance->ProjectileCount,
 		                                                              SpellInstance->ProjectileSpread);
 
 		for (const auto& R : Rotations)

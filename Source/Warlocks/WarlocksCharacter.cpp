@@ -86,8 +86,11 @@ void AWarlocksCharacter::Die()
 	bIsDead = true;
 	StopCastingSpell();
 	StopChannelingSpell();
-	GetController()->StopMovement();
 	SetActorEnableCollision(false);
+	if (const auto Controller = GetController())
+	{
+		Controller->StopMovement();
+	}
 	
 	// todo - probably some more behavior, perhaps letting the GameMode know we died or something
 }
