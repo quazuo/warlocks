@@ -5,7 +5,7 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Warlocks/WarlocksCharacter.h"
+#include "Warlocks/Player/WarlocksCharacter.h"
 
 AWarlocksFlash::AWarlocksFlash()
 {
@@ -19,17 +19,17 @@ void AWarlocksFlash::BeginPlay()
 
 	// spawn initial particle
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), OnCastParticle, Warlock->GetActorLocation(),
-											 FRotator::ZeroRotator, FVector(1));
+											 FRotator::ZeroRotator, FVector(.25));
 
 	// move caster
-	Warlock->StopChannelingSpell();
+	Warlock->bIsChannelingSpell = false;
 	Warlock->GetController()->StopMovement();
 	Warlock->GetCharacterMovement()->Velocity = FVector::Zero();
 	Warlock->SetActorLocation(Warlock->GetActorLocation() + GetActorRotation().Vector() * Range);
 
 	// spawn next particle
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), OnCastParticle, Warlock->GetActorLocation(),
-											 FRotator::ZeroRotator, FVector(.3));
+											 FRotator::ZeroRotator, FVector(.25));
 	
 	Super::BeginPlay();
 }

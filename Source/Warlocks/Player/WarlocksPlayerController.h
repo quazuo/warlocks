@@ -1,12 +1,11 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
-#include "InputActionValue.h"
-#include "Spells/WarlocksFireball.h"
+
+#include "Warlocks/Spells/WarlocksSpell.h"
+
 #include "WarlocksPlayerController.generated.h"
 
 /** Forward declaration to improve compiling times */
@@ -24,16 +23,6 @@ enum class ESpell : uint8
 	SpellR UMETA(DisplayName = "R Spell"),
 };
 
-// USTRUCT()
-// struct FSpell
-// {
-// 	GENERATED_BODY()
-//
-// 	TSubclassOf<AWarlocksSpell> SpellClass;
-//
-// 	FTimerHandle CooldownTimer;
-// };
-
 UCLASS()
 class AWarlocksPlayerController : public APlayerController
 {
@@ -42,8 +31,8 @@ class AWarlocksPlayerController : public APlayerController
 public:
 	AWarlocksPlayerController();
 
-	UPROPERTY(BlueprintReadOnly, Category = Input)
-	bool bIsCastingSpell = false;
+	UPROPERTY(BlueprintReadOnly)
+	FString PlayerName = "Placeholder name";
 
 	// FX for click-to-move
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)

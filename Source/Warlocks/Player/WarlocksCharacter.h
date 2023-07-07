@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,7 +12,6 @@ class AWarlocksCharacter : public ACharacter
 public:
 	AWarlocksCharacter();
 
-	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
 
 	UFUNCTION()
@@ -22,16 +19,13 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
 	bool bIsCastingSpell = false;
-	FORCEINLINE void StartCastingSpell() { bIsCastingSpell = true; }
-	FORCEINLINE void StopCastingSpell() { bIsCastingSpell = false; }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
 	bool bIsChannelingSpell = false;
-	FORCEINLINE void StartChannelingSpell() { bIsChannelingSpell = true; }
-	FORCEINLINE void StopChannelingSpell() { bIsChannelingSpell = false; }
 
-	UPROPERTY(EditAnywhere)
-	FColor PlayerColor = FColor::Red;
+	// used for playing the winner animation
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
+	bool bIsVictorious = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float MaxHealth = 100;

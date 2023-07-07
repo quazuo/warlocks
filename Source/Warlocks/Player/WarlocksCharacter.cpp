@@ -1,13 +1,14 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "WarlocksCharacter.h"
 
-#include "WarlocksGameMode.h"
 #include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+
+#include "Warlocks/Game/WarlocksGameMode.h"
+#include "WarlocksPlayerController.h"
+#include "WarlocksPlayerState.h"
 
 AWarlocksCharacter::AWarlocksCharacter()
 {
@@ -101,13 +102,22 @@ float AWarlocksCharacter::RestoreHealth(const float HealAmount)
 void AWarlocksCharacter::Die()
 {
 	bIsDead = true;
-	StopCastingSpell();
-	StopChannelingSpell();
+	bIsCastingSpell = false;
+	bIsChannelingSpell = false;
 	SetActorEnableCollision(false);
-	if (const auto CharacterController = GetController())
-	{
-		CharacterController->StopMovement();
-	}
 
-	// todo - probably some more behavior, perhaps letting the GameMode know we died or something
+	const auto CharacterController = Cast<AWarlocksPlayerController>(GetController());
+	if (!CharacterController) return;
+
+	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
+	if (!State) return;
+
+	const auto GameMode = Cast<AWarlocksGameMode>(UGameplayStatics::GetGameMode(this));
+	if (!GameMode) return;
+
+	CharacterController->StopMovement();
+	State->bIsDead = true;
+	
+	const FString Announcement = CharacterController->PlayerName.Append(" has been slain");
+	GameMode->Announce(Announcement);
 }

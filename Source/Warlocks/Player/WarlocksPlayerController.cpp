@@ -1,6 +1,5 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "WarlocksPlayerController.h"
+
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
@@ -8,11 +7,11 @@
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "FWarlocksUtils.h"
 #include "Camera/CameraActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Spells/WarlocksSpell.h"
+
+#include "Warlocks/FWarlocksUtils.h"
 
 AWarlocksPlayerController::AWarlocksPlayerController()
 {
@@ -129,7 +128,7 @@ void AWarlocksPlayerController::OnMoveInputStarted()
 	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
 	if (!Warlock) return;
 
-	if (Warlock->bIsDead) return;
+	if (Warlock->bIsDead || Warlock->bIsVictorious) return;
 	// if (GetCharacter()->GetCharacterMovement()->MovementMode == MOVE_Falling) return;
 	if (GetWorldTimerManager().GetTimerRemaining(SpellCastTimer) > 0) return;
 
@@ -194,7 +193,7 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	}
 	else
 	{
-		Warlock->StartCastingSpell();
+		Warlock->bIsCastingSpell = true;
 		CurrentlyCastedSpell = SpellClass;
 
 		FTimerDelegate SpellCastDelegate;
@@ -215,7 +214,7 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 
 	const auto SpellInstance = SpellClass.GetDefaultObject();
 
-	Warlock->StopCastingSpell();
+	Warlock->bIsCastingSpell = false;
 	StartSpellCooldown(SpellSlot);
 
 	// spawn the spell actor(s)
@@ -249,7 +248,7 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 	if (SpellClass.GetDefaultObject()->SpellCastType == ESpellCastType::Channel)
 	{
 		CurrentlyChanneledSpell = Spell;
-		Warlock->StartChannelingSpell();
+		Warlock->bIsChannelingSpell = true;
 	}
 }
 
@@ -288,6 +287,6 @@ void AWarlocksPlayerController::StopChannelingSpell()
 	{
 		CurrentlyChanneledSpell->Destroy();
 		CurrentlyChanneledSpell = nullptr;
-		Warlock->StopChannelingSpell();
+		Warlock->bIsChannelingSpell = false;
 	}
 }

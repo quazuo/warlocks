@@ -6,8 +6,8 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
-#include "Warlocks/WarlocksCharacter.h"
-#include "Warlocks/WarlocksPlayerController.h"
+#include "Warlocks/Player/WarlocksCharacter.h"
+#include "Warlocks/Player/WarlocksPlayerController.h"
 
 AWarlocksFireball::AWarlocksFireball()
 {
