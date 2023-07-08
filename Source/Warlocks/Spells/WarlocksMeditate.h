@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,11 +7,8 @@
 
 #include "WarlocksMeditate.generated.h"
 
-/**
- * 
- */
 UCLASS()
-class WARLOCKS_API AWarlocksMeditate : public AWarlocksSpell
+class WARLOCKS_API AWarlocksMeditate final : public AWarlocksSpell
 {
 	GENERATED_BODY()
 

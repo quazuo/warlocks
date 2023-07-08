@@ -16,6 +16,9 @@ public:
 
 	UFUNCTION()
 	void Launch(FVector Direction, const float Force);
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
+	bool bIsStunned = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
 	bool bIsCastingSpell = false;
@@ -27,13 +30,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
 	bool bIsVictorious = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State)
 	float MaxHealth = 100;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State)
 	float Health = MaxHealth;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
 	bool bIsDead = false;
 
 	UFUNCTION(BlueprintCallable)

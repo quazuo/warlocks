@@ -1,4 +1,1 @@
-
-
-
 #include "WarlocksSpell.h"

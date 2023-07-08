@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "Warlocks/FWarlocksUtils.h"
+#include "Warlocks/Spells/WarlocksProjectileSpell.h"
 
 AWarlocksPlayerController::AWarlocksPlayerController()
 {
@@ -128,14 +129,14 @@ void AWarlocksPlayerController::OnMoveInputStarted()
 	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
 	if (!Warlock) return;
 
-	if (Warlock->bIsDead || Warlock->bIsVictorious) return;
-	// if (GetCharacter()->GetCharacterMovement()->MovementMode == MOVE_Falling) return;
+	if (Warlock->bIsStunned) return;
 	if (GetWorldTimerManager().GetTimerRemaining(SpellCastTimer) > 0) return;
 
 	StopChannelingSpell();
 	StopMovement();
 
-	if (FHitResult Hit; GetHitResultUnderCursor(ECC_Visibility, true, Hit))
+	FHitResult Hit;
+	if (GetHitResultUnderCursor(ECC_Visibility, true, Hit))
 	{
 		CachedDestination = Hit.Location;
 	}
@@ -155,7 +156,7 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 
 	// check if character is spawned and is alive
 	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (!Warlock || Warlock->bIsDead) return;
+	if (!Warlock || Warlock->bIsStunned) return;
 
 	// check if there is a spell in the slot
 	const auto SpellClass = GetSpellClass(SpellSlot);
@@ -207,7 +208,7 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 	CurrentlyCastedSpell = nullptr;
 
 	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (!Warlock) return;
+	if (!Warlock || Warlock->bIsStunned) return;
 
 	const auto SpellClass = GetSpellClass(SpellSlot);
 	if (!SpellClass) return;
@@ -223,32 +224,31 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 	SpawnParams.Instigator = GetInstigator();
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	// if the spell is of type `Projectile`, spawn multiple actors spread around
-	if (SpellInstance->SpellType == ESpellType::Projectile)
+	// if the spell is of type `Projectile`, 
+	const auto ProjectileSpellInstance = Cast<AWarlocksProjectileSpell>(SpellInstance);
+	if (ProjectileSpellInstance)
 	{
-		TArray<FRotator> Rotations = FWarlocksUtils::GetSpreadRotators(Rotation, SpellInstance->ProjectileCount,
-		                                                              SpellInstance->ProjectileSpread);
+		// spawn multiple projectiles spread around
+		TArray<FRotator> Rotations = FWarlocksUtils::GetSpreadRotators(Rotation, ProjectileSpellInstance->ProjectileCount,
+		                                                              ProjectileSpellInstance->ProjectileSpread);
 
 		for (const auto& R : Rotations)
 		{
-			const AWarlocksSpell* Spell = GetWorld()->SpawnActor<AWarlocksSpell>(
+			const AWarlocksProjectileSpell* Spell = GetWorld()->SpawnActor<AWarlocksProjectileSpell>(
 				SpellClass, Location, R, SpawnParams);
-			if (!Spell) return;
 		}
-
-		return;
 	}
-
-	// if it's not of type `Projectile`, just spawn it in
-	AWarlocksSpell* Spell = GetWorld()->SpawnActor<AWarlocksSpell>(
-		SpellClass, Location, Rotation, SpawnParams);
-
-	if (!Spell) return;
-
-	if (SpellClass.GetDefaultObject()->SpellCastType == ESpellCastType::Channel)
+	else
 	{
-		CurrentlyChanneledSpell = Spell;
-		Warlock->bIsChannelingSpell = true;
+		// if it's not of type `Projectile`, just spawn it in
+		AWarlocksSpell* Spell = GetWorld()->SpawnActor<AWarlocksSpell>(
+			SpellClass, Location, Rotation, SpawnParams);
+
+		if (SpellClass.GetDefaultObject()->SpellCastType == ESpellCastType::Channel)
+		{
+			CurrentlyChanneledSpell = Spell;
+			Warlock->bIsChannelingSpell = true;
+		}
 	}
 }
 

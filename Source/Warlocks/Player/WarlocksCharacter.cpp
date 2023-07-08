@@ -102,6 +102,7 @@ float AWarlocksCharacter::RestoreHealth(const float HealAmount)
 void AWarlocksCharacter::Die()
 {
 	bIsDead = true;
+	bIsStunned = true;
 	bIsCastingSpell = false;
 	bIsChannelingSpell = false;
 	SetActorEnableCollision(false);

@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class WARLOCKS_API AWarlocksArcaneBarrier : public AWarlocksSpell
+class WARLOCKS_API AWarlocksArcaneBarrier final : public AWarlocksSpell
 {
 	GENERATED_BODY()
 

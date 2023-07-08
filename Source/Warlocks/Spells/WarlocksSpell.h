@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -10,7 +8,7 @@ UENUM()
 enum class ETarget { None, Self, Floor, Player };
 
 UENUM()
-enum class ESpellType { Projectile, Area, Buff, Debuff };
+enum class ESpellType { Area, Buff, Debuff };
 
 UENUM()
 enum class ESpellCastType { Instant, Casted, Channel };
@@ -23,59 +21,38 @@ class WARLOCKS_API AWarlocksSpell : public AActor
 public:
 	// numerical stats
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	float Cooldown = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell,
 		meta = (EditCondition = "SpellCastType != ESpellCastType::Instant"))
 	float CastTime = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	float Duration;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	float Power;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	float Knockback;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	float Range;
-
-	// projectile related things
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
-		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
-	float ProjectileSpeed = 1000;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
-		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
-	int ProjectileCount = 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
-		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
-	int ProjectileSpread = 10;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats,
-		meta = (EditCondition = "SpellType == ESpellType::Projectile"))
-	float ProjectileHitboxRadius = 50;
 
 	// categories
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	ETarget TargetingMode;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	ESpellType SpellType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stats)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	ESpellCastType SpellCastType;
 
-	// external asset refs
+	// meta data
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Icon)
-	UTexture2D* SpellIcon;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Info)
-	UStringTable* SpellInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
+	FString SpellName;
 };

@@ -136,6 +136,7 @@ void AWarlocksGameMode::EndRound(const AWarlocksPlayerState* WinnerState)
 	if (Warlock)
 	{
 		Warlock->bIsVictorious = true;
+		Warlock->bIsStunned = true;
 		Warlock->GetController()->StopMovement();
 
 		// rotate towards the camera (forwards)

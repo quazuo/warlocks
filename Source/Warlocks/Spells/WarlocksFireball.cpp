@@ -11,27 +11,6 @@
 
 AWarlocksFireball::AWarlocksFireball()
 {
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
-
-	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	CollisionSphere->InitSphereRadius(15);
-	CollisionSphere->BodyInstance.SetCollisionProfileName(TEXT("Projectile"));
-	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWarlocksFireball::OnHit);
-	RootComponent = CollisionSphere;
-
-	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(
-		TEXT("ProjectileMovementComponent"));
-	ProjectileMovement->SetUpdatedComponent(CollisionSphere);
-	ProjectileMovement->InitialSpeed = ProjectileSpeed;
-	ProjectileMovement->MaxSpeed = ProjectileSpeed;
-	ProjectileMovement->bRotationFollowsVelocity = true;
-	ProjectileMovement->bShouldBounce = false;
-	ProjectileMovement->ProjectileGravityScale = 0;
-
-	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMeshComponent"));
-	ProjectileMesh->SetRelativeScale3D(FVector(0.09));
-	ProjectileMesh->SetupAttachment(RootComponent);
-
 	PointLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("PointLight"));
 	PointLight->SetIntensity(1000);
 	PointLight->SetLightColor(FLinearColor(1, 0.5, 0));
@@ -39,18 +18,10 @@ AWarlocksFireball::AWarlocksFireball()
 
 	ContinuousParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ContinuousParticle"));
 	ContinuousParticle->SetupAttachment(RootComponent);
-
-	InitialLifeSpan = 2;
 }
 
 void AWarlocksFireball::BeginPlay()
 {
-	ProjectileMovement->Velocity = GetActorRotation().Vector() * ProjectileSpeed;
-	ProjectileMovement->InitialSpeed = ProjectileSpeed;
-	ProjectileMovement->MaxSpeed = ProjectileSpeed;
-
-	CollisionSphere->SetSphereRadius(ProjectileHitboxRadius);
-
 	Super::BeginPlay();
 }
 
