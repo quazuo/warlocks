@@ -3,9 +3,7 @@
 #include "CoreMinimal.h"
 #include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
-
 #include "Warlocks/Spells/WarlocksSpell.h"
-
 #include "WarlocksPlayerController.generated.h"
 
 /** Forward declaration to improve compiling times */
@@ -170,4 +168,10 @@ private:
 
 	UFUNCTION()
 	void CastSpell(ESpell SpellSlot, const FVector Location, const FRotator Rotation);
+
+	UFUNCTION()
+	void ApplyItemsToSpell(AWarlocksSpell *Spell) const;
+
+	UFUNCTION()
+	AWarlocksSpell* SpawnSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const;
 };

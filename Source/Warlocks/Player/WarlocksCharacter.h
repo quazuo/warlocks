@@ -16,6 +16,10 @@ public:
 
 	UFUNCTION()
 	void Launch(FVector Direction, const float Force);
+
+	virtual void BeginPlay() override;
+
+	virtual void PossessedBy(AController* NewController) override;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
 	bool bIsStunned = false;
@@ -48,4 +52,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void Refresh();
+
+	UFUNCTION(BlueprintCallable)
+	void ApplyItems();
 };

@@ -67,6 +67,17 @@ void AWarlocksCharacter::Launch(const FVector Direction, const float Force)
 	LaunchCharacter(Direction * Force, false, false);
 }
 
+void AWarlocksCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void AWarlocksCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	ApplyItems();
+}
+
 float AWarlocksCharacter::TakeDamage(const float DamageAmount, FDamageEvent const& DamageEvent,
                                      AController* EventInstigator, AActor* DamageCauser)
 {
@@ -121,4 +132,29 @@ void AWarlocksCharacter::Die()
 	
 	const FString Announcement = CharacterController->PlayerName.Append(" has been slain");
 	GameMode->Announce(Announcement);
+}
+
+void AWarlocksCharacter::Refresh()
+{
+	const auto CDO = Cast<AWarlocksCharacter>(StaticClass()->GetDefaultObject());
+	if (!CDO) return;
+
+	bIsStunned = CDO->bIsStunned;
+	bIsCastingSpell = CDO->bIsCastingSpell;
+	bIsChannelingSpell = CDO->bIsChannelingSpell;
+	bIsVictorious = CDO->bIsVictorious;
+	MaxHealth = CDO->MaxHealth;
+	Health = MaxHealth;
+}
+
+void AWarlocksCharacter::ApplyItems()
+{
+	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
+	if (!State) return;
+
+	for (const auto &Item : State->Inventory)
+	{
+		if (Item.CharacterModifier)
+			Item.CharacterModifier(this);
+	}
 }

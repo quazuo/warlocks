@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "WarlocksPlayerState.h"
 #include "Camera/CameraActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -203,6 +204,32 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	}
 }
 
+void AWarlocksPlayerController::ApplyItemsToSpell(AWarlocksSpell* Spell) const
+{
+	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
+	if (!State) return;
+
+	for (const auto &Item : State->Inventory)
+	{
+		if (Item.SpellModifier)
+			Item.SpellModifier(Spell);
+	}
+}
+
+AWarlocksSpell* AWarlocksPlayerController::SpawnSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const
+{
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = GetCharacter();
+	SpawnParams.Instigator = GetInstigator();
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	
+	const auto Spell = GetWorld()->SpawnActor<AWarlocksSpell>(Class, Location, Rotation, SpawnParams);
+	if (!Spell) return nullptr;
+	
+	ApplyItemsToSpell(Spell);
+	return Spell;
+}
+
 void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Location, const FRotator Rotation)
 {
 	CurrentlyCastedSpell = nullptr;
@@ -228,21 +255,24 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 	const auto ProjectileSpellInstance = Cast<AWarlocksProjectileSpell>(SpellInstance);
 	if (ProjectileSpellInstance)
 	{
+		// spawn temporary spell and apply items to see modified stats like projectile count and such
+		const auto TempSpell = Cast<AWarlocksProjectileSpell>(SpawnSpell(SpellClass, Location, Rotation));
+		if (!TempSpell) return;
+		
 		// spawn multiple projectiles spread around
-		TArray<FRotator> Rotations = FWarlocksUtils::GetSpreadRotators(Rotation, ProjectileSpellInstance->ProjectileCount,
-		                                                              ProjectileSpellInstance->ProjectileSpread);
+		TArray<FRotator> Rotations = FWarlocksUtils::GetSpreadRotators(Rotation, TempSpell->ProjectileCount,
+		                                                              TempSpell->ProjectileSpread);
+		TempSpell->Destroy();
 
 		for (const auto& R : Rotations)
 		{
-			const AWarlocksProjectileSpell* Spell = GetWorld()->SpawnActor<AWarlocksProjectileSpell>(
-				SpellClass, Location, R, SpawnParams);
+			SpawnSpell(SpellClass, Location, R);
 		}
 	}
 	else
 	{
 		// if it's not of type `Projectile`, just spawn it in
-		AWarlocksSpell* Spell = GetWorld()->SpawnActor<AWarlocksSpell>(
-			SpellClass, Location, Rotation, SpawnParams);
+		const auto Spell = SpawnSpell(SpellClass, Location, Rotation);
 
 		if (SpellClass.GetDefaultObject()->SpellCastType == ESpellCastType::Channel)
 		{
