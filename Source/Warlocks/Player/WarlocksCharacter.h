@@ -11,37 +11,23 @@ class AWarlocksCharacter : public ACharacter
 
 public:
 	AWarlocksCharacter();
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	UFUNCTION()
-	void Launch(FVector Direction, const float Force);
-
 	virtual void BeginPlay() override;
-
-	virtual void PossessedBy(AController* NewController) override;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
-	bool bIsStunned = false;
+	virtual void PossessedBy(AController* NewController) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
-	bool bIsCastingSpell = false;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
-	bool bIsChannelingSpell = false;
-
-	// used for playing the winner animation
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
-	bool bIsVictorious = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State)
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = State)
 	float MaxHealth = 100;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State)
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = State)
 	float Health = MaxHealth;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State)
-	bool bIsDead = false;
+	UFUNCTION()
+	void Launch(FVector Direction, const float Force);
 
 	UFUNCTION(BlueprintCallable)
 	virtual float TakeDamage(const float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
@@ -50,11 +36,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float RestoreHealth(const float HealAmount);
 
-	UFUNCTION(BlueprintCallable)
-	void Die();
-
-	UFUNCTION(BlueprintCallable)
-	void Refresh();
+	UFUNCTION(Server, Reliable)
+	void ServerDie();
 
 	UFUNCTION(BlueprintCallable)
 	void ApplyItems();

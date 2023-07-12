@@ -9,18 +9,19 @@
 #include "Warlocks/Game/WarlocksGameMode.h"
 #include "WarlocksPlayerController.h"
 #include "WarlocksPlayerState.h"
+#include "Net/UnrealNetwork.h"
+#include "Warlocks/Game/WarlocksGameState.h"
 
 AWarlocksCharacter::AWarlocksCharacter()
 {
-	// Set size for player capsule
 	GetCapsuleComponent()->InitCapsuleSize(42, 96);
 
-	// Don't rotate character to camera direction
+	// don't rotate character to camera direction
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// Configure character movement
+	// configure character movement
 	const auto CharMove = GetCharacterMovement();
 	CharMove->bOrientRotationToMovement = true; // Rotate character to moving direction
 	CharMove->RotationRate = FRotator(0, 640, 0);
@@ -31,8 +32,21 @@ AWarlocksCharacter::AWarlocksCharacter()
 	CharMove->GravityScale = 0; // don't stop falling until velocity == 0
 	CharMove->BrakingDecelerationFalling = 200;
 
+	// tick stuff
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	// multiplayer stuff
+	bReplicates = true;
+	Super::SetReplicateMovement(true);
+}
+
+void AWarlocksCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWarlocksCharacter, Health);
+	DOREPLIFETIME(AWarlocksCharacter, MaxHealth);
 }
 
 void AWarlocksCharacter::Tick(const float DeltaSeconds)
@@ -81,7 +95,8 @@ void AWarlocksCharacter::PossessedBy(AController* NewController)
 float AWarlocksCharacter::TakeDamage(const float DamageAmount, FDamageEvent const& DamageEvent,
                                      AController* EventInstigator, AActor* DamageCauser)
 {
-	if (bIsDead) return 0;
+	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
+	if (!State || State->bIsDead) return 0;
 
 	const auto AppliedDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
@@ -89,7 +104,7 @@ float AWarlocksCharacter::TakeDamage(const float DamageAmount, FDamageEvent cons
 	if (Health <= 0)
 	{
 		Health = 0;
-		Die();
+		ServerDie();
 	}
 
 	return AppliedDamage;
@@ -97,7 +112,8 @@ float AWarlocksCharacter::TakeDamage(const float DamageAmount, FDamageEvent cons
 
 float AWarlocksCharacter::RestoreHealth(const float HealAmount)
 {
-	if (bIsDead) return 0;
+	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
+	if (!State || State->bIsDead) return 0;
 
 	const auto PreviousHealth = Health;
 	
@@ -110,41 +126,32 @@ float AWarlocksCharacter::RestoreHealth(const float HealAmount)
 	return Health - PreviousHealth;
 }
 
-void AWarlocksCharacter::Die()
+void AWarlocksCharacter::ServerDie_Implementation()
 {
-	bIsDead = true;
-	bIsStunned = true;
-	bIsCastingSpell = false;
-	bIsChannelingSpell = false;
+	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
+	if (!State) return;
+	
+	State->bIsDead = true;
+	State->bIsStunned = true;
+	State->bIsCastingSpell = false;
+	State->bIsChannelingSpell = false;
 	SetActorEnableCollision(false);
 
 	const auto CharacterController = Cast<AWarlocksPlayerController>(GetController());
 	if (!CharacterController) return;
 
-	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
-	if (!State) return;
+	CharacterController->StopMovement();
+	State->bIsDead = true;
 
 	const auto GameMode = Cast<AWarlocksGameMode>(UGameplayStatics::GetGameMode(this));
 	if (!GameMode) return;
-
-	CharacterController->StopMovement();
-	State->bIsDead = true;
 	
-	const FString Announcement = CharacterController->PlayerName.Append(" has been slain");
-	GameMode->Announce(Announcement);
-}
-
-void AWarlocksCharacter::Refresh()
-{
-	const auto CDO = Cast<AWarlocksCharacter>(StaticClass()->GetDefaultObject());
-	if (!CDO) return;
-
-	bIsStunned = CDO->bIsStunned;
-	bIsCastingSpell = CDO->bIsCastingSpell;
-	bIsChannelingSpell = CDO->bIsChannelingSpell;
-	bIsVictorious = CDO->bIsVictorious;
-	MaxHealth = CDO->MaxHealth;
-	Health = MaxHealth;
+	const auto GameState = GameMode->GetGameState<AWarlocksGameState>();
+	if (GameState)
+	{
+		const FString Announcement = CharacterController->GetHumanReadableName().Append(" has been slain");
+		GameState->Announce(Announcement);
+	}
 }
 
 void AWarlocksCharacter::ApplyItems()

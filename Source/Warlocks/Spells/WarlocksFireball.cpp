@@ -35,15 +35,25 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                               const FHitResult& SweepResult)
 {
-	if (OtherActor == this || OtherActor == GetOwner() || Cast<AWarlocksSpell>(OtherActor)) return;
+	if (OtherActor == this || OtherActor == GetOwner() || !GetOwner() || Cast<AWarlocksSpell>(OtherActor)) return;
+
+	UE_LOG(LogActor, Error, TEXT("OnHit: Owner: %s"),
+	GetOwner()
+		? *GetOwner()->GetHumanReadableName()
+		: TEXT("null"));
+
+	UE_LOG(LogActor, Error, TEXT("OnHit: OtherActor: %s"),
+	OtherActor
+		? *OtherActor->GetHumanReadableName()
+		: TEXT("null"));
 	
-	if (AWarlocksCharacter* Enemy = Cast<AWarlocksCharacter>(OtherActor))
+	if (const auto Enemy = Cast<AWarlocksCharacter>(OtherActor))
 	{
 		const auto OwnerWarlock = Cast<AWarlocksCharacter>(GetOwner());
 		const auto OwnerController = OwnerWarlock ? OwnerWarlock->GetController() : nullptr;
 		UGameplayStatics::ApplyDamage(Enemy, Power, OwnerController, this, nullptr);
 
-		UE_LOG(LogGameMode, Error, TEXT("Fireball hit: %f damage"), Power);
+		UE_LOG(LogActor, Error, TEXT("Fireball hit: %f damage"), Power);
 
 		Enemy->Launch(-1 * SweepResult.Normal, Knockback);
 		

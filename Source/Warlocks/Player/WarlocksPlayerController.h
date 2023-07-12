@@ -6,6 +6,7 @@
 #include "Warlocks/Spells/WarlocksSpell.h"
 #include "WarlocksPlayerController.generated.h"
 
+class AWarlocksCharacter;
 /** Forward declaration to improve compiling times */
 class UNiagaraSystem;
 class AWarlocksSpell;
@@ -28,9 +29,6 @@ class AWarlocksPlayerController : public APlayerController
 
 public:
 	AWarlocksPlayerController();
-
-	UPROPERTY(BlueprintReadOnly)
-	FString PlayerName = "Placeholder name";
 
 	// FX for click-to-move
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -135,6 +133,9 @@ protected:
 
 	void OnMoveInputStarted();
 
+	UFUNCTION(Server, Reliable)
+	void ServerMoveTo(const FVector Destination);
+
 	UFUNCTION()
 	void StartSpellCast(ESpell SpellSlot);
 
@@ -172,6 +173,9 @@ private:
 	UFUNCTION()
 	void ApplyItemsToSpell(AWarlocksSpell *Spell) const;
 
+	UFUNCTION(Server, Reliable)
+	void ServerSpawnSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const;
+
 	UFUNCTION()
-	AWarlocksSpell* SpawnSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const;
+	AWarlocksSpell* SpawnTempSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const;
 };

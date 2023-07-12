@@ -11,6 +11,7 @@
 #include "Camera/CameraActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Navigation/PathFollowingComponent.h"
 
 #include "Warlocks/FWarlocksUtils.h"
 #include "Warlocks/Spells/WarlocksProjectileSpell.h"
@@ -86,13 +87,6 @@ void AWarlocksPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
-
-	// TArray<AActor*> Cameras;
-	// UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraActor::StaticClass(), Cameras);
-	// if (!Cameras.IsEmpty())
-	// {
-	// 	SetViewTargetWithBlend(Cameras.Last());
-	// }
 }
 
 void AWarlocksPlayerController::SetupInputComponent()
@@ -119,33 +113,49 @@ void AWarlocksPlayerController::SetupInputComponent()
 
 		// debug event
 		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this,
-										   &AWarlocksPlayerController::DoDebugThing);
+		                                   &AWarlocksPlayerController::DoDebugThing);
 	}
 }
 
 void AWarlocksPlayerController::OnMoveInputStarted()
 {
-	if (!GetCharacter()) return;
+	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
+	if (!State || State->bIsStunned) return;
 
-	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (!Warlock) return;
-
-	if (Warlock->bIsStunned) return;
 	if (GetWorldTimerManager().GetTimerRemaining(SpellCastTimer) > 0) return;
 
 	StopChannelingSpell();
 	StopMovement();
 
 	FHitResult Hit;
-	if (GetHitResultUnderCursor(ECC_Visibility, true, Hit))
+	if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit))
+		return;
+	
+	ServerMoveTo(Hit.Location);
+	CachedDestination = Hit.Location;
+
+	// this is needed because of the problem that occurs when we call SimpleMoveToLocation with a respawned pawn
+	if (GetLocalRole() < ROLE_Authority)
 	{
-		CachedDestination = Hit.Location;
+		UPathFollowingComponent* PathFollowingComp = FindComponentByClass<UPathFollowingComponent>();
+		if (PathFollowingComp)
+		{
+			PathFollowingComp->UpdateCachedComponents();
+			bUpdatedMovementCache = true;
+			UE_LOG(LogActor, Error, TEXT("Updated!"));
+		}
 	}
 
 	UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, CachedDestination);
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, CachedDestination,
-	                                               FRotator::ZeroRotator, FVector(1), true, true,
-	                                               ENCPoolMethod::None, true);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, CachedDestination, FRotator::ZeroRotator,
+	                                               FVector(1), true, true, ENCPoolMethod::None, true);
+}
+
+void AWarlocksPlayerController::ServerMoveTo_Implementation(const FVector Destination)
+{
+	StopMovement();
+	CachedDestination = Destination;
+	UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, CachedDestination);
 }
 
 void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
@@ -155,9 +165,9 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	if (GetRemainingCooldown(SpellSlot) > 0) return;
 	if (CurrentlyCastedSpell) return;
 
-	// check if character is spawned and is alive
-	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (!Warlock || Warlock->bIsStunned) return;
+	// check if warlock is spawned and is alive
+	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
+	if (!State || State->bIsStunned) return;
 
 	// check if there is a spell in the slot
 	const auto SpellClass = GetSpellClass(SpellSlot);
@@ -171,15 +181,15 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 		&& ControlledCharacter->GetCharacterMovement()->MovementMode == MOVE_Falling)
 		return;
 
-	StopMovement();
-
-	const FVector CharacterLoc = ControlledCharacter->GetActorLocation();
-	FRotator Rotation = FRotator::ZeroRotator;
-
 	// get location of cursor and rotator pointing to it, so we can rotate the character in that direction.
 	// if it cannot be found and the spell needs it (i.e. it's floor targeted) return immediately.
 	FHitResult Hit;
 	if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit) && SpellInstance->TargetingMode == ETarget::Floor) return;
+
+	const FVector CharacterLoc = ControlledCharacter->GetActorLocation();
+	FRotator Rotation = FRotator::ZeroRotator;
+
+	StopMovement();
 
 	FVector CursorLocation = Hit.Location;
 	CursorLocation.SetComponentForAxis(EAxis::Z, CharacterLoc.Z);
@@ -195,7 +205,7 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	}
 	else
 	{
-		Warlock->bIsCastingSpell = true;
+		State->bIsCastingSpell = true;
 		CurrentlyCastedSpell = SpellClass;
 
 		FTimerDelegate SpellCastDelegate;
@@ -209,40 +219,62 @@ void AWarlocksPlayerController::ApplyItemsToSpell(AWarlocksSpell* Spell) const
 	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
 	if (!State) return;
 
-	for (const auto &Item : State->Inventory)
+	for (const auto& Item : State->Inventory)
 	{
 		if (Item.SpellModifier)
 			Item.SpellModifier(Spell);
 	}
 }
 
-AWarlocksSpell* AWarlocksPlayerController::SpawnSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const
+AWarlocksSpell* AWarlocksPlayerController::SpawnTempSpell(UClass* Class, FVector const& Location,
+                                                          FRotator const& Rotation) const
 {
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetCharacter();
 	SpawnParams.Instigator = GetInstigator();
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	
-	const auto Spell = GetWorld()->SpawnActor<AWarlocksSpell>(Class, Location, Rotation, SpawnParams);
+
+	const auto Spell = GetWorld()->SpawnActor<AWarlocksSpell>(Class, Location, Rotation);
 	if (!Spell) return nullptr;
-	
+
 	ApplyItemsToSpell(Spell);
 	return Spell;
+}
+
+void AWarlocksPlayerController::ServerSpawnSpell_Implementation(UClass* Class, FVector const& Location,
+                                                                FRotator const& Rotation) const
+{
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = GetCharacter();
+	SpawnParams.Instigator = GetInstigator();
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	UE_LOG(LogActor, Error, TEXT("Server: Owner: %s"),
+	       SpawnParams.Owner
+	       ? *SpawnParams.Owner->GetHumanReadableName()
+	       : TEXT("null"));
+
+	const auto Spell = GetWorld()->SpawnActor<AWarlocksSpell>(Class, Location, Rotation, SpawnParams);
+	if (!Spell) return;
+
+	UE_LOG(LogActor, Error, TEXT("Spell not null"));
+
+	ApplyItemsToSpell(Spell);
 }
 
 void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Location, const FRotator Rotation)
 {
 	CurrentlyCastedSpell = nullptr;
 
-	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (!Warlock || Warlock->bIsStunned) return;
+	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
+	if (!State || State->bIsStunned) return;
 
 	const auto SpellClass = GetSpellClass(SpellSlot);
 	if (!SpellClass) return;
 
 	const auto SpellInstance = SpellClass.GetDefaultObject();
 
-	Warlock->bIsCastingSpell = false;
+	State->bIsCastingSpell = false;
 	StartSpellCooldown(SpellSlot);
 
 	// spawn the spell actor(s)
@@ -251,33 +283,38 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 	SpawnParams.Instigator = GetInstigator();
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+	UE_LOG(LogActor, Error, TEXT("Client: Owner: %s"),
+	       SpawnParams.Owner
+	       ? *SpawnParams.Owner->GetHumanReadableName()
+	       : TEXT("null"));
+
 	// if the spell is of type `Projectile`, 
 	const auto ProjectileSpellInstance = Cast<AWarlocksProjectileSpell>(SpellInstance);
 	if (ProjectileSpellInstance)
 	{
 		// spawn temporary spell and apply items to see modified stats like projectile count and such
-		const auto TempSpell = Cast<AWarlocksProjectileSpell>(SpawnSpell(SpellClass, Location, Rotation));
+		const auto TempSpell = Cast<AWarlocksProjectileSpell>(SpawnTempSpell(SpellClass, Location, Rotation));
 		if (!TempSpell) return;
-		
+
 		// spawn multiple projectiles spread around
 		TArray<FRotator> Rotations = FWarlocksUtils::GetSpreadRotators(Rotation, TempSpell->ProjectileCount,
-		                                                              TempSpell->ProjectileSpread);
+		                                                               TempSpell->ProjectileSpread);
 		TempSpell->Destroy();
 
 		for (const auto& R : Rotations)
 		{
-			SpawnSpell(SpellClass, Location, R);
+			ServerSpawnSpell(SpellClass, Location, R); // todo - merge into 1 rpc
 		}
 	}
 	else
 	{
 		// if it's not of type `Projectile`, just spawn it in
-		const auto Spell = SpawnSpell(SpellClass, Location, Rotation);
+		ServerSpawnSpell(SpellClass, Location, Rotation);
 
 		if (SpellClass.GetDefaultObject()->SpellCastType == ESpellCastType::Channel)
 		{
-			CurrentlyChanneledSpell = Spell;
-			Warlock->bIsChannelingSpell = true;
+			// CurrentlyChanneledSpell = Spell;
+			State->bIsChannelingSpell = true;
 		}
 	}
 }
@@ -310,13 +347,13 @@ void AWarlocksPlayerController::StartSpellCooldown(ESpell SpellSlot)
 
 void AWarlocksPlayerController::StopChannelingSpell()
 {
-	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (!Warlock) return;
+	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
+	if (!State) return;
 
 	if (CurrentlyChanneledSpell)
 	{
 		CurrentlyChanneledSpell->Destroy();
 		CurrentlyChanneledSpell = nullptr;
-		Warlock->bIsChannelingSpell = false;
+		State->bIsChannelingSpell = false;
 	}
 }

@@ -1,4 +1,6 @@
 #include "WarlocksGameMode.h"
+
+#include "WarlocksGameState.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
@@ -30,17 +32,13 @@ AWarlocksGameMode::AWarlocksGameMode()
 void AWarlocksGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// for testing
-	UGameplayStatics::CreatePlayer(GetWorld());
-
 	StartRound();
 }
 
 void AWarlocksGameMode::Tick(float DeltaSeconds)
 {
 	int AlivePlayerCount = 0;
-	const AWarlocksPlayerState* WinnerState = nullptr;
+	AWarlocksPlayerState* WinnerState = nullptr;
 
 	for (const auto &Player : GameState->PlayerArray)
 	{
@@ -52,7 +50,7 @@ void AWarlocksGameMode::Tick(float DeltaSeconds)
 		}
 	}
 
-	if (!bIsRoundTransition && AlivePlayerCount == 1 && WinnerState)
+	if (!bIsRoundTransition && GameState->PlayerArray.Num() > 1 && AlivePlayerCount == 1 && WinnerState)
 	{
 		bIsRoundTransition = true;
 		EndRound(WinnerState);
@@ -88,7 +86,11 @@ void AWarlocksGameMode::ShrinkSafeZone()
 	SafeZone->GetStaticMeshComponent()->SetRelativeScale3D(CurrScale);
 	CurrentSafeZoneScale = CurrScale.X;
 
-	Announce("The safe zone has shrunk!");
+	const auto State = GetGameState<AWarlocksGameState>();
+	if (State)
+	{
+		State->Announce("The safe zone has shrunk!");
+	}
 }
 
 void AWarlocksGameMode::ResetPlayers()
@@ -101,7 +103,7 @@ void AWarlocksGameMode::ResetPlayers()
 		if (WarlocksState)
 		{
 			WarlocksState->Reset();
-
+			
 			const auto Warlock = Cast<AWarlocksCharacter>(WarlocksState->GetPawn());
 			const auto CharacterController = Cast<AWarlocksPlayerController>(Warlock->GetController());
 
@@ -125,50 +127,32 @@ void AWarlocksGameMode::StartRound()
 	GetWorldTimerManager().SetTimer(SafeZoneTimer, ShrinkDelegate, SafeZoneShrinkInterval, true);
 }
 
-void AWarlocksGameMode::EndRound(const AWarlocksPlayerState* WinnerState)
+void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)
 {
 	UE_LOG(LogGameMode, Error, TEXT("Ending round..."));
-	AnnouncementQueue.Empty();
-	const FString Announcement = FString::Printf(TEXT("Player %d has won the round!"), WinnerState->GetPlayerId());
-	Announce(Announcement);
 
+	const auto State = GetGameState<AWarlocksGameState>();
+	if (State)
+	{
+		const FString Announcement = FString::Printf(TEXT("Player %d has won the round!"), WinnerState->GetPlayerId());
+		State->Announce(Announcement);
+	}
+	
 	const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn());
 	if (Warlock)
 	{
-		Warlock->bIsVictorious = true;
-		Warlock->bIsStunned = true;
+		WinnerState->bIsVictorious = true;
+		WinnerState->bIsStunned = true;
 		Warlock->GetController()->StopMovement();
 
 		// rotate towards the camera (forwards)
 		const FVector Vec = {-1, 0, 0};
 		Warlock->SetActorRotation(Vec.Rotation());
 	}
-
-	UE_LOG(LogGameMode, Error, TEXT("%s"), *FRotator::ZeroRotator.Vector().ToString());
-
+	
 	GetWorldTimerManager().ClearTimer(SafeZoneTimer);
 
 	FTimerDelegate RoundTransitionDelegate;
 	RoundTransitionDelegate.BindUFunction(this, FName("StartRound"));
 	GetWorldTimerManager().SetTimer(RoundTransitionTimer, RoundTransitionDelegate, RoundTransitionTime, false);
-}
-
-void AWarlocksGameMode::Announce(const FString& Text)
-{
-	AnnouncementQueue.Enqueue(Text);
-}
-
-bool AWarlocksGameMode::IsAnnouncement() const
-{
-	return !AnnouncementQueue.IsEmpty();
-}
-
-FString AWarlocksGameMode::GetAnnouncement()
-{
-	if (AnnouncementQueue.IsEmpty())
-		return "";
-
-	FString Announcement;
-	AnnouncementQueue.Dequeue(Announcement);
-	return Announcement;
 }

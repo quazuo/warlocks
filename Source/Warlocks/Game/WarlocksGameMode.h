@@ -52,18 +52,7 @@ public:
 	void StartRound();
 
 	UFUNCTION()
-	void EndRound(const AWarlocksPlayerState* Winner);
-
-	// announcements
-	
-	UFUNCTION(BlueprintCallable)
-	void Announce(const FString &Text);
-
-	UFUNCTION(BlueprintCallable)
-	bool IsAnnouncement() const;
-
-	UFUNCTION(BlueprintCallable)
-	FString GetAnnouncement();
+	void EndRound(AWarlocksPlayerState* WinnerState);
 
 private:
 	UPROPERTY()
@@ -82,8 +71,6 @@ private:
 
 	UFUNCTION()
 	void ResetPlayers();
-	
-	TQueue<FString> AnnouncementQueue;
 };
 
 

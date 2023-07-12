@@ -5,6 +5,7 @@
 
 #include "AssetViewWidgets.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
+#include "Warlocks/Player/WarlocksPlayerState.h"
 
 AWarlocksMeditate::AWarlocksMeditate()
 {
@@ -38,7 +39,11 @@ void AWarlocksMeditate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (const auto Warlock = Cast<AWarlocksCharacter>(GetOwner()))
 	{
-		Warlock->bIsChannelingSpell = false;
+		const auto State = Cast<AWarlocksPlayerState>(Warlock->GetPlayerState());
+		if (State)
+		{
+			State->bIsChannelingSpell = false;
+		}
 	}
 	
 	Super::EndPlay(EndPlayReason);

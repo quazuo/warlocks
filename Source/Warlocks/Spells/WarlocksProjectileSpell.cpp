@@ -11,7 +11,8 @@ AWarlocksProjectileSpell::AWarlocksProjectileSpell()
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	CollisionSphere->InitSphereRadius(15);
 	CollisionSphere->BodyInstance.SetCollisionProfileName(TEXT("Projectile"));
-	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWarlocksProjectileSpell::OnHit);
+	if (GetLocalRole() == ROLE_Authority)
+		CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWarlocksProjectileSpell::OnHit);
 	RootComponent = CollisionSphere;
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(

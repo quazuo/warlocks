@@ -3,8 +3,9 @@
 #include "CoreMinimal.h"
 #include "WarlocksItem.generated.h"
 
-class AWarlocksCharacter;
+class AWarlocksPlayerState;
 class AWarlocksSpell;
+class AWarlocksCharacter;
 
 // todo: kolejnosc itemkow
 
