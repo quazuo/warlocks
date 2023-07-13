@@ -5,12 +5,20 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Warlocks/FWarlocksUtils.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerState.h"
 
 AWarlocksFlash::AWarlocksFlash()
 {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SpellSceneComponent"));
+}
+
+TSubclassOf<UObject> AWarlocksFlash::GetBPClassPtr()
+{
+	const auto ObjPath =
+		TEXT("/Script/Engine.Blueprint'/Game/Warlocks/Blueprints/Spells/BP_WarlocksFlash.BP_WarlocksFlash'");
+	return FWarlocksUtils::GetBPClassPtr(ObjPath);
 }
 
 void AWarlocksFlash::BeginPlay()

@@ -17,12 +17,12 @@ UCLASS(Abstract)
 class WARLOCKS_API AWarlocksSpell : public AActor
 {
 	GENERATED_BODY()
-	
+
 public:
 	AWarlocksSpell();
-	
+
 	// numerical stats
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
 	float Cooldown = 1;
 

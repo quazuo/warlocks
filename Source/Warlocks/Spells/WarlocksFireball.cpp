@@ -7,8 +7,10 @@
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
+#include "Warlocks/FWarlocksUtils.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
+#include "Warlocks/Player/WarlocksPlayerState.h"
 
 AWarlocksFireball::AWarlocksFireball()
 {
@@ -19,6 +21,13 @@ AWarlocksFireball::AWarlocksFireball()
 
 	ContinuousParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ContinuousParticle"));
 	ContinuousParticle->SetupAttachment(RootComponent);
+}
+
+TSubclassOf<UObject> AWarlocksFireball::GetBPClassPtr()
+{
+	const auto ObjPath =
+		TEXT("/Script/Engine.Blueprint'/Game/Warlocks/Blueprints/Spells/BP_WarlocksFireball.BP_WarlocksFireball'");
+	return FWarlocksUtils::GetBPClassPtr(ObjPath);
 }
 
 void AWarlocksFireball::BeginPlay()
@@ -35,17 +44,8 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                               const FHitResult& SweepResult)
 {
-	if (OtherActor == this || OtherActor == GetOwner() || !GetOwner() || Cast<AWarlocksSpell>(OtherActor)) return;
-
-	UE_LOG(LogActor, Error, TEXT("OnHit: Owner: %s"),
-	GetOwner()
-		? *GetOwner()->GetHumanReadableName()
-		: TEXT("null"));
-
-	UE_LOG(LogActor, Error, TEXT("OnHit: OtherActor: %s"),
-	OtherActor
-		? *OtherActor->GetHumanReadableName()
-		: TEXT("null"));
+	if (OtherActor == this || OtherActor == GetOwner() || !GetOwner() || Cast<AWarlocksSpell>(OtherActor))
+		return;
 	
 	if (const auto Enemy = Cast<AWarlocksCharacter>(OtherActor))
 	{
@@ -57,13 +57,18 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 		Enemy->Launch(-1 * SweepResult.Normal, Knockback);
 		
-		if (const auto Controller = Cast<AWarlocksPlayerController>(Enemy->GetController()))
+		if (const auto EnemyState = Cast<AWarlocksPlayerState>(Enemy->GetPlayerState()))
 		{
-			Controller->StopChannelingSpell();
+			EnemyState->bIsChannelingSpell = false;
 		}
 	}
 
+	SpawnOnHitParticle();
+	Destroy();
+}
+
+void AWarlocksFireball::SpawnOnHitParticle()
+{
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), OnHitParticle, GetActorLocation(),
 		FRotator::ZeroRotator, FVector(.3));
-	Destroy();
 }

@@ -12,6 +12,8 @@ class WARLOCKS_API AWarlocksFlash final : public AWarlocksSpell
 public:
 	AWarlocksFlash();
 
+	static TSubclassOf<UObject> GetBPClassPtr();
+
 	virtual void BeginPlay() override;
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

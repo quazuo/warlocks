@@ -18,3 +18,11 @@ TArray<FRotator> FWarlocksUtils::GetSpreadRotators(const FRotator& BaseRotation,
 
 	return Result;
 }
+
+TSubclassOf<UObject> FWarlocksUtils::GetBPClassPtr(const TCHAR* BPObjPath)
+{
+	const ConstructorHelpers::FObjectFinder<UBlueprint> BPSpellObject(BPObjPath);
+	if (!BPSpellObject.Object)
+		return nullptr;
+	return BPSpellObject.Object->GeneratedClass;
+}

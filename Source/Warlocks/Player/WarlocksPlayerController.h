@@ -7,7 +7,6 @@
 #include "WarlocksPlayerController.generated.h"
 
 class AWarlocksCharacter;
-/** Forward declaration to improve compiling times */
 class UNiagaraSystem;
 class AWarlocksSpell;
 class UInputAction;
@@ -20,6 +19,22 @@ enum class ESpell : uint8
 	SpellW UMETA(DisplayName = "W Spell"),
 	SpellE UMETA(DisplayName = "E Spell"),
 	SpellR UMETA(DisplayName = "R Spell"),
+};
+
+USTRUCT(BlueprintType)
+struct FSpellSlot
+{
+	GENERATED_BODY()
+
+	TSubclassOf<AWarlocksSpell> SpellClass;
+
+	FTimerHandle CooldownTimer;
+
+	FORCEINLINE AWarlocksSpell* GetSpellCDO() const
+	{
+		if (!SpellClass) return nullptr;
+		return SpellClass.GetDefaultObject();
+	}
 };
 
 UCLASS()
@@ -74,40 +89,25 @@ public:
 	UFUNCTION()
 	FORCEINLINE void StartRSpellCast() { StartSpellCast(ESpell::SpellR); }
 
-	// classes of spells in each of the slots
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
-	TSubclassOf<AWarlocksSpell> QSpellClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
-	TSubclassOf<AWarlocksSpell> WSpellClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
-	TSubclassOf<AWarlocksSpell> ESpellClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spell)
-	TSubclassOf<AWarlocksSpell> RSpellClass;
-
-	// Spell wrappers
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE TSubclassOf<AWarlocksSpell> GetSpellClass(ESpell SpellSlot) const
+	FORCEINLINE FSpellSlot GetSpellSlot(const ESpell SpellSlot) const
 	{
 		switch (SpellSlot)
 		{
-		case ESpell::SpellQ: return QSpellClass;
-		case ESpell::SpellW: return WSpellClass;
-		case ESpell::SpellE: return ESpellClass;
-		case ESpell::SpellR: return RSpellClass;
+		case ESpell::SpellQ: return QSpellSlot;
+		case ESpell::SpellW: return WSpellSlot;
+		case ESpell::SpellE: return ESpellSlot;
+		case ESpell::SpellR: return RSpellSlot;
 		default: unimplemented();
-			return nullptr;
+			return {};
 		}
 	}
 
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE AWarlocksSpell* GetSpellCDO(ESpell SpellSlot) const
+	FORCEINLINE AWarlocksSpell* GetSpellCDO(const ESpell Slot) const
 	{
-		const auto SpellClass = GetSpellClass(SpellSlot);
-		if (!SpellClass) return nullptr;
-		return SpellClass.GetDefaultObject();
+		const auto SpellSlot = GetSpellSlot(Slot);
+		return SpellSlot.GetSpellCDO();
 	}
 
 	// Spell utils
@@ -123,9 +123,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Spell)
 	float GetRemainingCastTimePercent() const;
 
-	UFUNCTION()
-	void StopChannelingSpell();
-
 protected:
 	virtual void SetupInputComponent() override;
 
@@ -139,29 +136,28 @@ protected:
 	UFUNCTION()
 	void StartSpellCast(ESpell SpellSlot);
 
+	UFUNCTION(Server, Reliable)
+	void ServerPreSpellCast(FRotator Rotation);
+
 private:
 	FVector CachedDestination;
+	
+	FSpellSlot QSpellSlot, WSpellSlot, ESpellSlot, RSpellSlot;
 
 	FTimerHandle SpellCastTimer;
-	FTimerHandle QSpellCooldownTimer, WSpellCooldownTimer, ESpellCooldownTimer, RSpellCooldownTimer;
 
 	FORCEINLINE FTimerHandle* GetCooldownTimer(ESpell SpellSlot)
 	{
 		switch (SpellSlot)
 		{
-		case ESpell::SpellQ: return &QSpellCooldownTimer;
-		case ESpell::SpellW: return &WSpellCooldownTimer;
-		case ESpell::SpellE: return &ESpellCooldownTimer;
-		case ESpell::SpellR: return &RSpellCooldownTimer;
+		case ESpell::SpellQ: return &QSpellSlot.CooldownTimer;
+		case ESpell::SpellW: return &WSpellSlot.CooldownTimer;
+		case ESpell::SpellE: return &ESpellSlot.CooldownTimer;
+		case ESpell::SpellR: return &RSpellSlot.CooldownTimer;
 		default: unimplemented();
 			return nullptr;
 		}
 	}
-
-	TSubclassOf<AWarlocksSpell> CurrentlyCastedSpell;
-
-	UPROPERTY()
-	AWarlocksSpell* CurrentlyChanneledSpell;
 
 	void RotateCharacter(const FRotator& Rotation);
 
@@ -171,7 +167,7 @@ private:
 	void CastSpell(ESpell SpellSlot, const FVector Location, const FRotator Rotation);
 
 	UFUNCTION()
-	void ApplyItemsToSpell(AWarlocksSpell *Spell) const;
+	void ApplyItemsToSpell(AWarlocksSpell* Spell) const;
 
 	UFUNCTION(Server, Reliable)
 	void ServerSpawnSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const;

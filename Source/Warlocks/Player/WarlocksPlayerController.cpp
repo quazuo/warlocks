@@ -14,6 +14,10 @@
 #include "Navigation/PathFollowingComponent.h"
 
 #include "Warlocks/FWarlocksUtils.h"
+#include "Warlocks/Spells/WarlocksArcaneBarrier.h"
+#include "Warlocks/Spells/WarlocksFireball.h"
+#include "Warlocks/Spells/WarlocksFlash.h"
+#include "Warlocks/Spells/WarlocksMeditate.h"
 #include "Warlocks/Spells/WarlocksProjectileSpell.h"
 
 AWarlocksPlayerController::AWarlocksPlayerController()
@@ -21,6 +25,11 @@ AWarlocksPlayerController::AWarlocksPlayerController()
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
+
+	QSpellSlot.SpellClass = AWarlocksFireball::GetBPClassPtr();
+	WSpellSlot.SpellClass = AWarlocksMeditate::GetBPClassPtr();
+	ESpellSlot.SpellClass = AWarlocksFlash::GetBPClassPtr();
+	RSpellSlot.SpellClass = AWarlocksArcaneBarrier::GetBPClassPtr();
 }
 
 void AWarlocksPlayerController::DoDebugThing()
@@ -35,24 +44,24 @@ void AWarlocksPlayerController::DoDebugThing()
 float AWarlocksPlayerController::GetRemainingCooldown(ESpell SpellSlot)
 {
 	const auto CooldownTimer = GetCooldownTimer(SpellSlot);
-	return GetSpellClass(SpellSlot) && CooldownTimer->IsValid()
+	return GetSpellSlot(SpellSlot).SpellClass && CooldownTimer->IsValid()
 		       ? GetWorldTimerManager().GetTimerRemaining(*CooldownTimer)
 		       : 0;
 }
 
 float AWarlocksPlayerController::GetRemainingCooldownPercent(ESpell SpellSlot)
 {
-	const auto SpellClass = GetSpellClass(SpellSlot);
 	const auto CooldownTimer = GetCooldownTimer(SpellSlot);
 
-	if (SpellClass && CooldownTimer->IsValid())
+	if (GetWorldTimerManager().IsTimerActive(*CooldownTimer))
 	{
 		const auto RemainingCooldown = GetWorldTimerManager().GetTimerRemaining(*CooldownTimer);
+		const auto TotalCooldown = GetWorldTimerManager().GetTimerRemaining(*CooldownTimer);
 
-		const auto SpellInstance = SpellClass.GetDefaultObject();
-		if (!SpellInstance) return 0;
+		if (TotalCooldown == 0)
+			return 0;
 
-		return RemainingCooldown / SpellInstance->Cooldown;
+		return RemainingCooldown / TotalCooldown;
 	}
 
 	return 0;
@@ -65,14 +74,15 @@ float AWarlocksPlayerController::GetRemainingCastTime() const
 
 float AWarlocksPlayerController::GetRemainingCastTimePercent() const
 {
-	if (CurrentlyCastedSpell && SpellCastTimer.IsValid())
+	if (GetWorldTimerManager().IsTimerActive(SpellCastTimer))
 	{
 		const auto RemainingCastTime = GetWorldTimerManager().GetTimerRemaining(SpellCastTimer);
+		const auto TotalCastTime = GetWorldTimerManager().GetTimerRate(SpellCastTimer);
 
-		const auto SpellInstance = CurrentlyCastedSpell.GetDefaultObject();
-		if (!SpellInstance) return 0;
+		if (TotalCastTime == 0)
+			return 0;
 
-		return RemainingCastTime / SpellInstance->CastTime;
+		return RemainingCastTime / TotalCastTime;
 	}
 
 	return 0;
@@ -124,25 +134,23 @@ void AWarlocksPlayerController::OnMoveInputStarted()
 
 	if (GetWorldTimerManager().GetTimerRemaining(SpellCastTimer) > 0) return;
 
-	StopChannelingSpell();
+	State->bIsChannelingSpell = false;
 	StopMovement();
 
 	FHitResult Hit;
 	if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit))
 		return;
-	
+
 	ServerMoveTo(Hit.Location);
 	CachedDestination = Hit.Location;
 
 	// this is needed because of the problem that occurs when we call SimpleMoveToLocation with a respawned pawn
 	if (GetLocalRole() < ROLE_Authority)
 	{
-		UPathFollowingComponent* PathFollowingComp = FindComponentByClass<UPathFollowingComponent>();
+		const auto PathFollowingComp = FindComponentByClass<UPathFollowingComponent>();
 		if (PathFollowingComp)
 		{
 			PathFollowingComp->UpdateCachedComponents();
-			bUpdatedMovementCache = true;
-			UE_LOG(LogActor, Error, TEXT("Updated!"));
 		}
 	}
 
@@ -156,6 +164,11 @@ void AWarlocksPlayerController::ServerMoveTo_Implementation(const FVector Destin
 	StopMovement();
 	CachedDestination = Destination;
 	UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, CachedDestination);
+
+	if (const auto State = Cast<AWarlocksPlayerState>(PlayerState))
+	{
+		State->bIsChannelingSpell = false;
+	}
 }
 
 void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
@@ -163,14 +176,13 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	// check if we can cast the spell
 	if (!GetWorld()) return;
 	if (GetRemainingCooldown(SpellSlot) > 0) return;
-	if (CurrentlyCastedSpell) return;
 
 	// check if warlock is spawned and is alive
 	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
-	if (!State || State->bIsStunned) return;
+	if (!State || State->bIsStunned || State->bIsCastingSpell) return;
 
 	// check if there is a spell in the slot
-	const auto SpellClass = GetSpellClass(SpellSlot);
+	const auto SpellClass = GetSpellSlot(SpellSlot).SpellClass;
 	if (!SpellClass) return;
 
 	const auto SpellInstance = SpellClass.GetDefaultObject();
@@ -187,17 +199,15 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit) && SpellInstance->TargetingMode == ETarget::Floor) return;
 
 	const FVector CharacterLoc = ControlledCharacter->GetActorLocation();
-	FRotator Rotation = FRotator::ZeroRotator;
-
-	StopMovement();
-
 	FVector CursorLocation = Hit.Location;
-	CursorLocation.SetComponentForAxis(EAxis::Z, CharacterLoc.Z);
+	CursorLocation.Z = CharacterLoc.Z;
 	const FVector CursorDirection = CursorLocation - CharacterLoc;
-	Rotation = CursorDirection.Rotation();
-	RotateCharacter(Rotation);
+	FRotator Rotation = CursorDirection.Rotation();
 
-	StopChannelingSpell();
+	RotateCharacter(Rotation);
+	StopMovement();
+	State->bIsChannelingSpell = false;
+	ServerPreSpellCast(Rotation);
 
 	if (SpellInstance->SpellCastType == ESpellCastType::Instant)
 	{
@@ -206,11 +216,22 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	else
 	{
 		State->bIsCastingSpell = true;
-		CurrentlyCastedSpell = SpellClass;
 
 		FTimerDelegate SpellCastDelegate;
 		SpellCastDelegate.BindUFunction(this, FName("CastSpell"), SpellSlot, CharacterLoc, Rotation);
 		GetWorldTimerManager().SetTimer(SpellCastTimer, SpellCastDelegate, SpellInstance->CastTime, false);
+	}
+}
+
+void AWarlocksPlayerController::ServerPreSpellCast_Implementation(FRotator CharRotation)
+{
+	StopMovement();
+	RotateCharacter(CharRotation);
+
+	if (const auto State = Cast<AWarlocksPlayerState>(PlayerState))
+	{
+		State->bIsChannelingSpell = false;
+		State->bIsCastingSpell = true;
 	}
 }
 
@@ -241,52 +262,44 @@ AWarlocksSpell* AWarlocksPlayerController::SpawnTempSpell(UClass* Class, FVector
 	return Spell;
 }
 
+// todo - merge these 2?
 void AWarlocksPlayerController::ServerSpawnSpell_Implementation(UClass* Class, FVector const& Location,
                                                                 FRotator const& Rotation) const
 {
+	if (const auto State = Cast<AWarlocksPlayerState>(PlayerState))
+	{
+		State->bIsCastingSpell = false;
+
+		const auto SpellCDO = Class ? Cast<AWarlocksSpell>(Class->GetDefaultObject()) : nullptr;
+		if (SpellCDO && SpellCDO->SpellCastType == ESpellCastType::Channel)
+		{
+			State->bIsChannelingSpell = true;
+		}
+	}
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetCharacter();
 	SpawnParams.Instigator = GetInstigator();
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	UE_LOG(LogActor, Error, TEXT("Server: Owner: %s"),
-	       SpawnParams.Owner
-	       ? *SpawnParams.Owner->GetHumanReadableName()
-	       : TEXT("null"));
-
 	const auto Spell = GetWorld()->SpawnActor<AWarlocksSpell>(Class, Location, Rotation, SpawnParams);
 	if (!Spell) return;
-
-	UE_LOG(LogActor, Error, TEXT("Spell not null"));
 
 	ApplyItemsToSpell(Spell);
 }
 
 void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Location, const FRotator Rotation)
 {
-	CurrentlyCastedSpell = nullptr;
-
 	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
 	if (!State || State->bIsStunned) return;
 
-	const auto SpellClass = GetSpellClass(SpellSlot);
+	const auto SpellClass = GetSpellSlot(SpellSlot).SpellClass;
 	if (!SpellClass) return;
 
 	const auto SpellInstance = SpellClass.GetDefaultObject();
 
 	State->bIsCastingSpell = false;
 	StartSpellCooldown(SpellSlot);
-
-	// spawn the spell actor(s)
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = GetCharacter();
-	SpawnParams.Instigator = GetInstigator();
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	UE_LOG(LogActor, Error, TEXT("Client: Owner: %s"),
-	       SpawnParams.Owner
-	       ? *SpawnParams.Owner->GetHumanReadableName()
-	       : TEXT("null"));
 
 	// if the spell is of type `Projectile`, 
 	const auto ProjectileSpellInstance = Cast<AWarlocksProjectileSpell>(SpellInstance);
@@ -313,7 +326,6 @@ void AWarlocksPlayerController::CastSpell(ESpell SpellSlot, const FVector Locati
 
 		if (SpellClass.GetDefaultObject()->SpellCastType == ESpellCastType::Channel)
 		{
-			// CurrentlyChanneledSpell = Spell;
 			State->bIsChannelingSpell = true;
 		}
 	}
@@ -335,7 +347,7 @@ void AWarlocksPlayerController::RotateCharacter(const FRotator& Rotation)
 
 void AWarlocksPlayerController::StartSpellCooldown(ESpell SpellSlot)
 {
-	const auto SpellClass = GetSpellClass(SpellSlot);
+	const auto SpellClass = GetSpellSlot(SpellSlot).SpellClass;
 	if (!SpellClass) return;
 
 	const auto CooldownTimer = GetCooldownTimer(SpellSlot);
@@ -343,17 +355,4 @@ void AWarlocksPlayerController::StartSpellCooldown(ESpell SpellSlot)
 	GetWorldTimerManager().SetTimer(*CooldownTimer, []
 	{
 	}, SpellClass.GetDefaultObject()->Cooldown, false);
-}
-
-void AWarlocksPlayerController::StopChannelingSpell()
-{
-	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
-	if (!State) return;
-
-	if (CurrentlyChanneledSpell)
-	{
-		CurrentlyChanneledSpell->Destroy();
-		CurrentlyChanneledSpell = nullptr;
-		State->bIsChannelingSpell = false;
-	}
 }
