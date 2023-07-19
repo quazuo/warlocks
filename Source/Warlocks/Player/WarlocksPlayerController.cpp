@@ -15,10 +15,10 @@
 
 #include "Warlocks/FWarlocksUtils.h"
 #include "Warlocks/Spells/WarlocksArcaneBarrier.h"
-#include "Warlocks/Spells/WarlocksFireball.h"
+#include "Warlocks/Spells/Projectile/WarlocksFireball.h"
 #include "Warlocks/Spells/WarlocksFlash.h"
 #include "Warlocks/Spells/WarlocksMeditate.h"
-#include "Warlocks/Spells/WarlocksProjectileSpell.h"
+#include "Warlocks/Spells/Projectile/WarlocksProjectileSpell.h"
 
 AWarlocksPlayerController::AWarlocksPlayerController()
 {
@@ -196,7 +196,7 @@ void AWarlocksPlayerController::StartSpellCast(ESpell SpellSlot)
 	// get location of cursor and rotator pointing to it, so we can rotate the character in that direction.
 	// if it cannot be found and the spell needs it (i.e. it's floor targeted) return immediately.
 	FHitResult Hit;
-	if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit) && SpellInstance->TargetingMode == ETarget::Floor) return;
+	if (!GetHitResultUnderCursor(ECC_Visibility, true, Hit) && SpellInstance->TargetingMode == ETargetingMode::Floor) return;
 
 	const FVector CharacterLoc = ControlledCharacter->GetActorLocation();
 	FVector CursorLocation = Hit.Location;

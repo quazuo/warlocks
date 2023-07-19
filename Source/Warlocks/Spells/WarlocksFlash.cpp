@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "WarlocksFlash.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
@@ -11,7 +8,7 @@
 
 AWarlocksFlash::AWarlocksFlash()
 {
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SpellSceneComponent"));
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 }
 
 TSubclassOf<UObject> AWarlocksFlash::GetBPClassPtr()

@@ -8,8 +8,6 @@ UCLASS()
 class WARLOCKS_API AWarlocksGameState : public AGameStateBase
 {
 	GENERATED_BODY()
-	
-	// announcements
 
 public:
 	UFUNCTION(NetMulticast, Reliable)

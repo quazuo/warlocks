@@ -1,20 +1,19 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "WarlocksMeditate.h"
 
 #include "AssetViewWidgets.h"
 #include "Warlocks/FWarlocksUtils.h"
+#include "Components/PointLightComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
 #include "Warlocks/Player/WarlocksPlayerState.h"
 
 AWarlocksMeditate::AWarlocksMeditate()
 {
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 
 	ContinuousParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ContinuousParticle"));
-	RootComponent = ContinuousParticle;
+	ContinuousParticle->SetupAttachment(RootComponent);
 
 	PointLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("PointLight"));
 	PointLight->SetIntensity(1000);
@@ -38,9 +37,7 @@ void AWarlocksMeditate::BeginPlay()
 	if (!Warlock) return;
 	
 	RootComponent->AttachToComponent(Warlock->GetRootComponent(), { EAttachmentRule::SnapToTarget, false });
-
 	SetLifeSpan(Duration);
-	
 	Super::BeginPlay();
 }
 
@@ -57,14 +54,14 @@ void AWarlocksMeditate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AWarlocksMeditate::Tick(float DeltaTime)
+void AWarlocksMeditate::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
 	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
 	if (!Warlock) return;
 
-	Warlock->RestoreHealth(Power);
+	Warlock->RestoreHealth(Power * DeltaTime);
 
 	const auto State = Cast<AWarlocksPlayerState>(Warlock->GetPlayerState());
 	if (!State) return;

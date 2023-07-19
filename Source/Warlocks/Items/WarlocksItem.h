@@ -1,11 +1,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Warlocks/Player/WarlocksCharacter.h"
 #include "WarlocksItem.generated.h"
 
 class AWarlocksPlayerState;
 class AWarlocksSpell;
 class AWarlocksCharacter;
+
+using FSpellModifier = std::function<void(AWarlocksSpell*)>;
+using FSpellOnHitEffect = std::function<void(AWarlocksCharacter*)>;
+using FCharacterModifier = std::function<void(AWarlocksCharacter*)>;
 
 // todo: kolejnosc itemkow
 
@@ -23,28 +28,49 @@ struct WARLOCKS_API FWarlocksItem
 	UPROPERTY(BlueprintReadOnly)
 	EItemRarity Rarity;
 	
-	std::function<void(AWarlocksSpell*)> SpellModifier = nullptr;
+	FSpellModifier SpellModifier = nullptr;
 
-	std::function<void(AWarlocksCharacter*)> CharacterModifier = nullptr;
+	FSpellOnHitEffect SpellOnHitEffect = nullptr;
+
+	FCharacterModifier CharacterModifier = nullptr;
 };
 
 // Spell modifiers
+
+FSpellModifier MakePowerModifier(const float Mod);
+FSpellModifier MakeKnockbackModifier(const float Mod);
+
 #define SPELLMOD(name) void name##_SpellMod(AWarlocksSpell*)
 SPELLMOD(InfernalFork);
 SPELLMOD(BrokenHourglass);
 SPELLMOD(GlassCannon);
 
+// Spell on-hit modifiers
+
+#define SPELLONHITMOD(name) void name##_SpellOnHitEffect(AWarlocksCharacter*)
+SPELLONHITMOD(FireKeeperCharm);
+
 // Character modifiers
+
 #define CHARMOD(name) void name##_CharMod(AWarlocksCharacter*)
 CHARMOD(GlassCannon);
 
-static const FWarlocksItem NullItem = { "None" };
+// Item table
 
 static const TArray<FWarlocksItem> WarlocksItems = {
 	// Common items
-	
+	{
+		"LongSword",
+		EItemRarity::Common,
+		MakePowerModifier(1.1)
+	},
 	// Uncommon items
-	
+	{
+		"FireKeeperCharm",
+		EItemRarity::Uncommon,
+		nullptr,
+		FireKeeperCharm_SpellOnHitEffect
+	},
 	// Rare items
 	{
 		"InfernalFork",
@@ -56,13 +82,31 @@ static const TArray<FWarlocksItem> WarlocksItems = {
 		EItemRarity::Rare,
 		BrokenHourglass_SpellMod
 	},
+	{
+		"BloodOrb",
+		EItemRarity::Rare,
+		// todo ideas
+	},
 	// Epic items
 	{
 		"GlassCannon",
 		EItemRarity::Epic,
 		GlassCannon_SpellMod,
+		nullptr,
 		GlassCannon_CharMod
+	},
+	{
+		"ForbiddenTome",
+		EItemRarity::Epic,
+		// todo ideas
+	},
+	{
+		"AccursedEye",
+		EItemRarity::Epic,
+		// todo ideas
 	}
 	// Legendary items
 	
 };
+
+static const FWarlocksItem NullItem = { "Empty" };

@@ -3,8 +3,9 @@
 #include "WarlocksGameState.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Warlocks/Player/WarlocksCharacter.h"
+#include "Engine/StaticMeshActor.h"
 
+#include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
 #include "Warlocks/Player/WarlocksPlayerState.h"
 

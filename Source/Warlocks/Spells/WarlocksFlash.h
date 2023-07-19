@@ -14,12 +14,14 @@ public:
 
 	static TSubclassOf<UObject> GetBPClassPtr();
 
+protected:
 	virtual void BeginPlay() override;
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	virtual void Tick(float DeltaTime) override;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Particle)
+
+private:
+	UPROPERTY(EditAnywhere, Category = Particle)
 	UParticleSystem* OnCastParticle;
 };

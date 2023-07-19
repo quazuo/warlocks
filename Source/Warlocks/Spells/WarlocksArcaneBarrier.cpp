@@ -1,9 +1,10 @@
 #include "WarlocksArcaneBarrier.h"
 
-#include "WarlocksFireball.h"
 #include "Warlocks/FWarlocksUtils.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+
+#include "Warlocks/Spells/Projectile/WarlocksProjectileSpell.h"
 
 AWarlocksArcaneBarrier::AWarlocksArcaneBarrier()
 {
@@ -11,7 +12,9 @@ AWarlocksArcaneBarrier::AWarlocksArcaneBarrier()
 	RootComponent = Mesh;
 
 	if (GetLocalRole() == ROLE_Authority)
+	{
 		Mesh->OnComponentBeginOverlap.AddDynamic(this, &AWarlocksArcaneBarrier::OnHit);
+	}
 }
 
 TSubclassOf<UObject> AWarlocksArcaneBarrier::GetBPClassPtr()
@@ -40,8 +43,6 @@ void AWarlocksArcaneBarrier::OnHit(UPrimitiveComponent* OverlappedComponent, AAc
 
 	if (const auto Projectile = Cast<AWarlocksProjectileSpell>(OtherActor))
 	{
-		// todo - maybe a particle
-
 		Projectile->SpawnOnHitParticle();
 		OtherActor->Destroy();
 	}

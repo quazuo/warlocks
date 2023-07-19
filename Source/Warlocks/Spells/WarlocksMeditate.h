@@ -2,10 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "WarlocksSpell.h"
-#include "Components/PointLightComponent.h"
-#include "Particles/ParticleSystemComponent.h"
 
 #include "WarlocksMeditate.generated.h"
+
+class UParticleSystemComponent;
+class UPointLightComponent;
 
 UCLASS()
 class WARLOCKS_API AWarlocksMeditate final : public AWarlocksSpell
@@ -17,15 +18,17 @@ public:
 
 	static TSubclassOf<UObject> GetBPClassPtr();
 
+protected:
 	virtual void BeginPlay() override;
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	virtual void Tick(float DeltaTime) override;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Projectile)
+	virtual void Tick(const float DeltaTime) override;
+
+private:
+	UPROPERTY(EditAnywhere, Category = Projectile)
 	UParticleSystemComponent* ContinuousParticle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Projectile)
+	UPROPERTY(EditAnywhere, Category = Projectile)
 	UPointLightComponent* PointLight;
 };

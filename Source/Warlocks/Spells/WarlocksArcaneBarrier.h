@@ -1,14 +1,9 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "WarlocksSpell.h"
 #include "WarlocksArcaneBarrier.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class WARLOCKS_API AWarlocksArcaneBarrier final : public AWarlocksSpell
 {

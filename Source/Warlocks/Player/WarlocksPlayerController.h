@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
 #include "Warlocks/Spells/WarlocksSpell.h"
 #include "WarlocksPlayerController.generated.h"
@@ -45,15 +44,16 @@ class AWarlocksPlayerController : public APlayerController
 public:
 	AWarlocksPlayerController();
 
-	// FX for click-to-move
+	// fx for click-to-move
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UNiagaraSystem* FXCursor;
 
-	// Mapping context
+	// mapping context
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
-	// Actions
+	// actions
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* SetDestinationClickAction;
 
@@ -72,11 +72,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* DebugAction;
 
-	// debug thing
+	/** debug thing */
 	UFUNCTION()
 	void DoDebugThing();
 
 	// dummy spell-casting wrapper UFunctions; used by actions
+	
 	UFUNCTION()
 	FORCEINLINE void StartQSpellCast() { StartSpellCast(ESpell::SpellQ); }
 
@@ -111,6 +112,7 @@ public:
 	}
 
 	// Spell utils
+	
 	UFUNCTION(BlueprintCallable, Category = Spell)
 	float GetRemainingCooldown(ESpell SpellSlot);
 
@@ -128,17 +130,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	void OnMoveInputStarted();
-
-	UFUNCTION(Server, Reliable)
-	void ServerMoveTo(const FVector Destination);
-
-	UFUNCTION()
-	void StartSpellCast(ESpell SpellSlot);
-
-	UFUNCTION(Server, Reliable)
-	void ServerPreSpellCast(FRotator Rotation);
-
 private:
 	FVector CachedDestination;
 	
@@ -146,7 +137,7 @@ private:
 
 	FTimerHandle SpellCastTimer;
 
-	FORCEINLINE FTimerHandle* GetCooldownTimer(ESpell SpellSlot)
+	FORCEINLINE FTimerHandle* GetCooldownTimer(const ESpell SpellSlot)
 	{
 		switch (SpellSlot)
 		{
@@ -159,8 +150,22 @@ private:
 		}
 	}
 
+	UFUNCTION()
+	void OnMoveInputStarted();
+
+	UFUNCTION(Server, Reliable)
+	void ServerMoveTo(const FVector Destination);
+
+	UFUNCTION()
+	void StartSpellCast(ESpell SpellSlot);
+
+	UFUNCTION(Server, Reliable)
+	void ServerPreSpellCast(FRotator Rotation);
+
+	UFUNCTION()
 	void RotateCharacter(const FRotator& Rotation);
 
+	UFUNCTION()
 	void StartSpellCooldown(ESpell SpellSlot);
 
 	UFUNCTION()

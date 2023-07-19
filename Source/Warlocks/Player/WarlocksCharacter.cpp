@@ -10,6 +10,7 @@
 #include "WarlocksPlayerController.h"
 #include "WarlocksPlayerState.h"
 #include "Net/UnrealNetwork.h"
+#include "Warlocks/Warlocks.h"
 #include "Warlocks/Game/WarlocksGameState.h"
 
 AWarlocksCharacter::AWarlocksCharacter()
@@ -68,7 +69,7 @@ void AWarlocksCharacter::Tick(const float DeltaSeconds)
 
 		if (pow(MyLocation.X, 2) + pow(MyLocation.Y, 2) > pow(SafeZoneRadius, 2))
 		{
-			TakeDamage(GameMode->LavaTickDamage, FDamageEvent(), nullptr, this);
+			TakeDamage(GameMode->LavaDamage * DeltaSeconds, FDamageEvent(), nullptr, this);
 		}
 	}
 }
