@@ -44,13 +44,3 @@ void AWarlocksFlash::BeginPlay()
 	
 	Super::BeginPlay();
 }
-
-void AWarlocksFlash::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
-
-void AWarlocksFlash::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}

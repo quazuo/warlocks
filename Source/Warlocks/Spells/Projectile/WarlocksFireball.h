@@ -15,13 +15,7 @@ class WARLOCKS_API AWarlocksFireball final : public AWarlocksProjectileSpell
 
 public:
 	AWarlocksFireball();
-
-protected:
-	virtual void BeginPlay() override;
-
-	virtual void Tick(float DeltaTime) override;
-
-public:
+	
 	static TSubclassOf<UObject> GetBPClassPtr();
 	
 	virtual void SpawnOnHitParticle() override;

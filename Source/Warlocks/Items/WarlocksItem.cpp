@@ -40,7 +40,7 @@ void GlassCannon_CharMod(AWarlocksCharacter* Character)
 
 void FireKeeperCharm_SpellOnHitEffect(AWarlocksCharacter* Target)
 {
-	const auto DotClassObjPath =
+	static const auto DotClassObjPath =
 		TEXT("/Script/Engine.Blueprint'/Game/Warlocks/Blueprints/Items/FireKeeperCharm/BP_FireKeeperCharmDotEffect.BP_FireKeeperCharmDotEffect'");
 	static const TSubclassOf<UObject> DotClass = FWarlocksUtils::GetBPClassPtr_Runtime(DotClassObjPath);
 	if (!DotClass) return;

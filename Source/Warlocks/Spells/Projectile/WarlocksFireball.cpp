@@ -30,16 +30,6 @@ TSubclassOf<UObject> AWarlocksFireball::GetBPClassPtr()
 	return FWarlocksUtils::GetBPClassPtr(ObjPath);
 }
 
-void AWarlocksFireball::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void AWarlocksFireball::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                               const FHitResult& SweepResult)
