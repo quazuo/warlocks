@@ -55,9 +55,9 @@ void AWarlocksProjectileSpell::OnHit(UPrimitiveComponent* OverlappedComponent, A
 	const auto Enemy = Cast<AWarlocksCharacter>(OtherActor);
 	if (!Enemy) return;
 	
-	for (const auto &Item : State->Inventory)
-	{
-		if (Item.SpellOnHitEffect)
-			Item.SpellOnHitEffect(Enemy);
-	}
+	// for (const auto &Item : State->Inventory)
+	// {
+	// 	if (Item.SpellOnHitEffect)
+	// 		Item.SpellOnHitEffect(Enemy);
+	// }
 }

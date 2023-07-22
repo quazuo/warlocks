@@ -1,17 +1,16 @@
 #include "WarlocksCharacter.h"
 
-#include "Components/DecalComponent.h"
+#include "AbilitySystemComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 #include "Warlocks/Game/WarlocksGameMode.h"
-#include "WarlocksPlayerController.h"
 #include "WarlocksPlayerState.h"
-#include "Net/UnrealNetwork.h"
 #include "Warlocks/Warlocks.h"
-#include "Warlocks/Game/WarlocksGameState.h"
+#include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
 
 AWarlocksCharacter::AWarlocksCharacter()
 {
@@ -42,14 +41,6 @@ AWarlocksCharacter::AWarlocksCharacter()
 	Super::SetReplicateMovement(true);
 }
 
-void AWarlocksCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWarlocksCharacter, Health);
-	DOREPLIFETIME(AWarlocksCharacter, MaxHealth);
-}
-
 void AWarlocksCharacter::Tick(const float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -59,6 +50,11 @@ void AWarlocksCharacter::Tick(const float DeltaSeconds)
 	if (CharMovement->MovementMode == MOVE_Falling && CharMovement->Velocity.X == 0 && CharMovement->Velocity.Y == 0)
 	{
 		CharMovement->SetMovementMode(MOVE_Walking);
+
+		if (const auto MyController = GetController())
+		{
+			MyController->StopMovement();
+		}
 	}
 
 	// apply damage if standing on lava
@@ -82,87 +78,63 @@ void AWarlocksCharacter::Launch(const FVector Direction, const float Force)
 	LaunchCharacter(Direction * Force, false, false);
 }
 
-void AWarlocksCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void AWarlocksCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	ApplyItems();
-}
 
-float AWarlocksCharacter::TakeDamage(const float DamageAmount, FDamageEvent const& DamageEvent,
-                                     AController* EventInstigator, AActor* DamageCauser)
-{
-	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
-	if (!State || State->bIsDead) return 0;
-
-	const auto AppliedDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-	Health -= AppliedDamage;
-	if (Health <= 0)
+	if (const auto State = GetPlayerState<AWarlocksPlayerState>())
 	{
-		Health = 0;
-		ServerDie();
-	}
+		AbilitySystemComponent = Cast<UWarlocksAbilitySystemComponent>(State->GetAbilitySystemComponent());
 
-	return AppliedDamage;
+		// AI won't have PlayerControllers so we can init again here just to be sure.
+		// No harm in initing twice for heroes that have PlayerControllers.
+		State->GetAbilitySystemComponent()->InitAbilityActorInfo(State, this);
+	}
 }
 
-float AWarlocksCharacter::RestoreHealth(const float HealAmount)
+void AWarlocksCharacter::BindAbilitiesToInput(UInputComponent* PlayerInputComponent) const
 {
-	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
-	if (!State || State->bIsDead) return 0;
-
-	const auto PreviousHealth = Health;
+	// Bind to AbilitySystemComponent
+	const FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(
+		FName("/Script/Warlocks"),
+		FName("EWarlocksAbilityInputID")
+	);
 	
-	Health += HealAmount;
-	if (Health > MaxHealth)
-	{
-		Health = MaxHealth;
-	}
-
-	return Health - PreviousHealth;
+	const auto BindInfo = FGameplayAbilityInputBinds(
+		FString("ConfirmTarget"),
+		FString("CancelTarget"),
+		AbilityEnumAssetPath,
+		static_cast<int32>(EWarlocksAbilityInputID::Confirm),
+		static_cast<int32>(EWarlocksAbilityInputID::Cancel)
+	);
+	
+	AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, BindInfo);
 }
 
-void AWarlocksCharacter::ServerDie_Implementation()
+void AWarlocksCharacter::OnRep_PlayerState()
 {
-	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
-	if (!State) return;
-	
-	State->bIsDead = true;
-	State->bIsStunned = true;
-	State->bIsCastingSpell = false;
-	State->bIsChannelingSpell = false;
-	SetActorEnableCollision(false);
+	Super::OnRep_PlayerState();
 
-	const auto CharacterController = Cast<AWarlocksPlayerController>(GetController());
-	if (!CharacterController) return;
-
-	CharacterController->StopMovement();
-	State->bIsDead = true;
-
-	const auto GameMode = Cast<AWarlocksGameMode>(UGameplayStatics::GetGameMode(this));
-	if (!GameMode) return;
-	
-	const auto GameState = GameMode->GetGameState<AWarlocksGameState>();
-	if (GameState)
+	if (const auto State = GetPlayerState<AWarlocksPlayerState>())
 	{
-		const FString Announcement = CharacterController->GetHumanReadableName().Append(" has been slain");
-		GameState->Announce(Announcement);
+		AbilitySystemComponent = Cast<UWarlocksAbilitySystemComponent>(State->GetAbilitySystemComponent());
+
+		// Init ASC Actor Info for clients. Server will init its ASC when it possesses a new Actor.
+		State->GetAbilitySystemComponent()->InitAbilityActorInfo(State, this);
 	}
+
+	BindAbilitiesToInput(InputComponent);
 }
 
-void AWarlocksCharacter::ApplyItems()
+void AWarlocksCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	BindAbilitiesToInput(PlayerInputComponent);
+}
+
+UAbilitySystemComponent* AWarlocksCharacter::GetAbilitySystemComponent() const
 {
 	const auto State = Cast<AWarlocksPlayerState>(GetPlayerState());
-	if (!State) return;
-
-	for (const auto &Item : State->Inventory)
-	{
-		if (Item.CharacterModifier)
-			Item.CharacterModifier(this);
-	}
+	if (!State) return nullptr;
+	return State->GetAbilitySystemComponent();
 }

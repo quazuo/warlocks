@@ -44,11 +44,11 @@ void AWarlocksGameMode::Tick(float DeltaSeconds)
 	for (const auto &Player : GameState->PlayerArray)
 	{
 		const auto WarlocksState = Cast<AWarlocksPlayerState>(Player);
-		if (WarlocksState && !WarlocksState->bIsDead)
-		{
-			AlivePlayerCount++;
-			WinnerState = WarlocksState;
-		}
+		// if (WarlocksState && !WarlocksState->bIsDead)
+		// {
+		// 	AlivePlayerCount++;
+		// 	WinnerState = WarlocksState;
+		// }
 	}
 
 	if (!bIsRoundTransition && GameState->PlayerArray.Num() > 1 && AlivePlayerCount == 1 && WinnerState)
@@ -142,8 +142,8 @@ void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)
 	const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn());
 	if (Warlock)
 	{
-		WinnerState->bIsVictorious = true;
-		WinnerState->bIsStunned = true;
+		//WinnerState->bIsVictorious = true;
+		//WinnerState->bIsStunned = true;
 		Warlock->GetController()->StopMovement();
 
 		// rotate towards the camera (forwards)

@@ -2,49 +2,50 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
-#include "Warlocks/Items/WarlocksItem.h"
+#include "AbilitySystemInterface.h"
+#include "Warlocks/Abilities/Spells/WarlocksGA_Fireball.h"
+#include "Warlocks/Warlocks.h"
+#include "Warlocks/Abilities/WarlocksGA_MoveTo.h"
 #include "WarlocksPlayerState.generated.h"
 
+class UWarlocksGameplayAbility;
+class UWarlocksAttributeSet;
+class UWarlocksAbilitySystemComponent;
+
 UCLASS(BlueprintType)
-class WARLOCKS_API AWarlocksPlayerState : public APlayerState
+class WARLOCKS_API AWarlocksPlayerState final : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	AWarlocksPlayerState();
 
-protected:
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void BeginPlay() override;
 
-public:
-	/** The set of items held by the player */
-	UPROPERTY(BlueprintReadOnly)
-	TArray<FWarlocksItem> Inventory = {
-		WarlocksItems[0], WarlocksItems[1], WarlocksItems[2],
-		NullItem, NullItem, NullItem
-	};
+	// IAbilitySystemInterface
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	/** Is the character controlled by this player dead? */
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = State)
-	bool bIsDead = false;
+	UWarlocksAttributeSet* GetAttributeSet() const;
+	
+	void Stun();
 
-	/** Is the character controlled by this player stunned (e.g. being knocked back)? */
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = State)
-	bool bIsStunned = false;
+private:
+	UPROPERTY()
+	UWarlocksAbilitySystemComponent* AbilitySystemComponent;
 
-	/** Is the character controlled by this player currently casting a spell? */
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = State)
-	bool bIsCastingSpell = false;
+	UPROPERTY()
+	UWarlocksAttributeSet* AttributeSet;
 
-	/** Is the character controlled by this player currently channelling a spell? */
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = State)
-	bool bIsChannelingSpell = false;
+	UPROPERTY(EditDefaultsOnly)
+	const TSubclassOf<UWarlocksGameplayAbility> MoveToAbility = UWarlocksGA_MoveTo::StaticClass();
 
-	/** Is the character controlled by this player the only remaining player? (used for playing the "winner" animation) */
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = State)
-	bool bIsVictorious = false;
+	const TSubclassOf<UWarlocksGameplayAbility> QStartupAbility = UWarlocksGA_Fireball::StaticClass();
+	const TSubclassOf<UWarlocksGameplayAbility> WStartupAbility = UWarlocksGA_Fireball::StaticClass();
+	const TSubclassOf<UWarlocksGameplayAbility> EStartupAbility = UWarlocksGA_Fireball::StaticClass();
+	const TSubclassOf<UWarlocksGameplayAbility> RStartupAbility = UWarlocksGA_Fireball::StaticClass();
 
-	/** Reset the state to original values */
-	UFUNCTION()
-	virtual void Reset() override;
+	FGameplayAbilitySpec GetStartingAbilitySpec(const TSubclassOf<UWarlocksGameplayAbility>& StartupAbility,
+	                                            EWarlocksAbilityInputID AbilityInputID);
+
+	void AddStartingAbilities();
 };

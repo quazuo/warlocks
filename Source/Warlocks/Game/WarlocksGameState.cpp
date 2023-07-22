@@ -3,8 +3,6 @@
 void AWarlocksGameState::Announce_Implementation(const FString& Text)
 {
 	AnnouncementQueue.Enqueue(Text);
-
-	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Green, TEXT("heyy"));
 }
 
 bool AWarlocksGameState::IsAnnouncement() const

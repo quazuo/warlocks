@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Warlocks/Warlocks.h"
 #include "Warlocks/Spells/WarlocksSpell.h"
 #include "WarlocksPlayerController.generated.h"
 
@@ -36,6 +37,10 @@ struct FSpellSlot
 	}
 };
 
+#define GAS_INPUT_HANDLERS(Name) \
+	FORCEINLINE void Handle##Name##Pressed() { SendLocalInputToASC(true, EWarlocksAbilityInputID::##Name##); } \
+	FORCEINLINE void Handle##Name##Released() { SendLocalInputToASC(false, EWarlocksAbilityInputID::##Name##); }
+
 UCLASS()
 class AWarlocksPlayerController : public APlayerController
 {
@@ -52,22 +57,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
-	// actions
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+	UInputAction* MoveToAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+	UInputAction* AbilityQAction;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* SetDestinationClickAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+	UInputAction* AbilityWAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* QSpellCastAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+	UInputAction* AbilityEAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+	UInputAction* AbilityRAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* WSpellCastAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* ESpellCastAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* RSpellCastAction;
+	// actions
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* DebugAction;
@@ -76,107 +81,23 @@ public:
 	UFUNCTION()
 	void DoDebugThing();
 
-	// dummy spell-casting wrapper UFunctions; used by actions
-	
-	UFUNCTION()
-	FORCEINLINE void StartQSpellCast() { StartSpellCast(ESpell::SpellQ); }
-
-	UFUNCTION()
-	FORCEINLINE void StartWSpellCast() { StartSpellCast(ESpell::SpellW); }
-
-	UFUNCTION()
-	FORCEINLINE void StartESpellCast() { StartSpellCast(ESpell::SpellE); }
-
-	UFUNCTION()
-	FORCEINLINE void StartRSpellCast() { StartSpellCast(ESpell::SpellR); }
-
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE FSpellSlot GetSpellSlot(const ESpell SpellSlot) const
-	{
-		switch (SpellSlot)
-		{
-		case ESpell::SpellQ: return QSpellSlot;
-		case ESpell::SpellW: return WSpellSlot;
-		case ESpell::SpellE: return ESpellSlot;
-		case ESpell::SpellR: return RSpellSlot;
-		default: unimplemented();
-			return {};
-		}
-	}
-
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE AWarlocksSpell* GetSpellCDO(const ESpell Slot) const
-	{
-		const auto SpellSlot = GetSpellSlot(Slot);
-		return SpellSlot.GetSpellCDO();
-	}
-
-	// Spell utils
-	
-	UFUNCTION(BlueprintCallable, Category = Spell)
-	float GetRemainingCooldown(ESpell SpellSlot);
-
-	UFUNCTION(BlueprintCallable, Category = Spell)
-	float GetRemainingCooldownPercent(ESpell SpellSlot);
-
-	UFUNCTION(BlueprintCallable, Category = Spell)
-	float GetRemainingCastTime() const;
-
-	UFUNCTION(BlueprintCallable, Category = Spell)
-	float GetRemainingCastTimePercent() const;
-
 protected:
 	virtual void SetupInputComponent() override;
 
 	virtual void BeginPlay() override;
 
 private:
-	FVector CachedDestination;
+	void HandleMoveToPressed();
+	void HandleMoveToReleased();
 	
-	FSpellSlot QSpellSlot, WSpellSlot, ESpellSlot, RSpellSlot;
-
-	FTimerHandle SpellCastTimer;
-
-	FORCEINLINE FTimerHandle* GetCooldownTimer(const ESpell SpellSlot)
-	{
-		switch (SpellSlot)
-		{
-		case ESpell::SpellQ: return &QSpellSlot.CooldownTimer;
-		case ESpell::SpellW: return &WSpellSlot.CooldownTimer;
-		case ESpell::SpellE: return &ESpellSlot.CooldownTimer;
-		case ESpell::SpellR: return &RSpellSlot.CooldownTimer;
-		default: unimplemented();
-			return nullptr;
-		}
-	}
-
-	UFUNCTION()
-	void OnMoveInputStarted();
-
-	UFUNCTION(Server, Reliable)
-	void ServerMoveTo(const FVector Destination);
-
-	UFUNCTION()
-	void StartSpellCast(ESpell SpellSlot);
-
-	UFUNCTION(Server, Reliable)
-	void ServerPreSpellCast(FRotator Rotation);
+	//GAS_INPUT_HANDLERS(MoveTo);
+	GAS_INPUT_HANDLERS(AbilityQ);
+	GAS_INPUT_HANDLERS(AbilityW);
+	GAS_INPUT_HANDLERS(AbilityE);
+	GAS_INPUT_HANDLERS(AbilityR);
+	
+	void SendLocalInputToASC(const bool bIsPressed, const EWarlocksAbilityInputID AbilityInputID) const;
 
 	UFUNCTION()
 	void RotateCharacter(const FRotator& Rotation);
-
-	UFUNCTION()
-	void StartSpellCooldown(ESpell SpellSlot);
-
-	UFUNCTION()
-	void CastSpell(ESpell SpellSlot, const FVector Location, const FRotator Rotation);
-
-	UFUNCTION()
-	void ApplyItemsToSpell(AWarlocksSpell* Spell) const;
-
-	UFUNCTION(Server, Reliable)
-	void ServerSpawnSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const;
-
-	UFUNCTION()
-	AWarlocksSpell* SpawnTempSpell(UClass* Class, FVector const& Location, FRotator const& Rotation) const;
 };

@@ -34,8 +34,8 @@ void GlassCannon_SpellMod(AWarlocksSpell* Spell)
 
 void GlassCannon_CharMod(AWarlocksCharacter* Character)
 {
-	Character->MaxHealth /= 2;
-	Character->Health = Character->MaxHealth;
+	//Character->MaxHealth /= 2;
+	//Character->Health = Character->MaxHealth;
 }
 
 void FireKeeperCharm_SpellOnHitEffect(AWarlocksCharacter* Target)
@@ -67,5 +67,5 @@ FSpellModifier MakeKnockbackModifier(const float Mod)
 
 FCharacterModifier MakeMaxHealthModifier(const float Mod)
 {
-	return [Mod](AWarlocksCharacter* Char) { Char->MaxHealth += Mod; };
+	return [Mod](AWarlocksCharacter* Char) { /* Char->MaxHealth += Mod; */ };
 }

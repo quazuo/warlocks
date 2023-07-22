@@ -47,7 +47,7 @@ void AWarlocksMeditate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		if (const auto State = Cast<AWarlocksPlayerState>(Warlock->GetPlayerState()))
 		{
-			State->bIsChannelingSpell = false;
+			//State->bIsChannelingSpell = false;
 		} 
 	}
 	
@@ -61,11 +61,11 @@ void AWarlocksMeditate::Tick(const float DeltaTime)
 	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
 	if (!Warlock) return;
 
-	Warlock->RestoreHealth(Power * DeltaTime);
+	//Warlock->RestoreHealth(Power * DeltaTime);
 
 	const auto State = Cast<AWarlocksPlayerState>(Warlock->GetPlayerState());
 	if (!State) return;
 
-	if (!State->bIsChannelingSpell)
-		Destroy();
+	//if (!State->bIsChannelingSpell)
+	//	Destroy();
 }

@@ -34,6 +34,8 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                               const FHitResult& SweepResult)
 {
+	return;
+	
 	Super::OnHit(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	
 	if (OtherActor == this || OtherActor == GetOwner() || Cast<AWarlocksSpell>(OtherActor))
@@ -53,7 +55,7 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
 		
 		if (const auto EnemyState = Cast<AWarlocksPlayerState>(Enemy->GetPlayerState()))
 		{
-			EnemyState->bIsChannelingSpell = false;
+			//EnemyState->bIsChannelingSpell = false;
 		}
 
 		UE_LOG(LogWarlocks, Error, TEXT("Fireball hit: %f damage"), Power);

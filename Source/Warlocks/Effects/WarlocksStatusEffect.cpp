@@ -21,7 +21,7 @@ void AWarlocksStatusEffect::BeginPlay()
 	const auto Warlock = Cast<AWarlocksCharacter>(GetOwner());
 	if (!Warlock) return;
 	
-	Warlock->ActiveEffects.Add(this);
+	//Warlock->ActiveEffects.Add(this);
 	RootComponent->AttachToComponent(Warlock->GetRootComponent(), { EAttachmentRule::SnapToTarget, false });
 	SetLifeSpan(Duration);
 }
@@ -32,6 +32,6 @@ void AWarlocksStatusEffect::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	if (const auto Warlock = Cast<AWarlocksCharacter>(GetOwner()))
 	{
-		Warlock->ActiveEffects.Remove(this);
+		//Warlock->ActiveEffects.Remove(this);
 	}
 }

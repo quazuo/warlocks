@@ -31,7 +31,7 @@ void AWarlocksFlash::BeginPlay()
 											 FRotator::ZeroRotator, FVector(.25));
 
 	// move caster
-	State->bIsChannelingSpell = false;
+	//State->bIsChannelingSpell = false;
 
 	if (Warlock->GetController())
 		Warlock->GetController()->StopMovement();
