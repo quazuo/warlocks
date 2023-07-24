@@ -94,6 +94,9 @@ void AWarlocksCharacter::PossessedBy(AController* NewController)
 
 void AWarlocksCharacter::BindAbilitiesToInput(UInputComponent* PlayerInputComponent) const
 {
+	if (!PlayerInputComponent)
+		return;
+	
 	// Bind to AbilitySystemComponent
 	const FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(
 		FName("/Script/Warlocks"),

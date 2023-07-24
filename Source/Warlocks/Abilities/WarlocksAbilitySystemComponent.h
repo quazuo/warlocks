@@ -10,5 +10,10 @@ class WARLOCKS_API UWarlocksAbilitySystemComponent final : public UAbilitySystem
 	GENERATED_BODY()
 
 public:
+	UWarlocksAbilitySystemComponent();
+	
 	bool bStartupAbilitiesGiven = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<class UWarlocksAT_CastSpell> SpellCastTask;
 };

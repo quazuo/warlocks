@@ -12,11 +12,13 @@ class WARLOCKS_API UWarlocksAT_CastSpell final : public UAbilityTask
 	GENERATED_BODY()
 
 public:
+	UWarlocksAT_CastSpell();
+	
 	UPROPERTY(BlueprintAssignable)
 	FSpellCastDelegate OnFinish;
 
 	virtual void Activate() override;
-
+	
 	UFUNCTION()
 	static UWarlocksAT_CastSpell* TaskCastSpell(TScriptInterface<IGameplayTaskOwnerInterface> TaskOwner,
 	                                            const float CastTime, const uint8 Priority = 192);
@@ -24,8 +26,10 @@ public:
 	static UWarlocksAT_CastSpell* TaskCastSpell(IGameplayTaskOwnerInterface& InTaskOwner, const float CastTime,
 	                                            const uint8 Priority = FGameplayTasks::DefaultPriority);
 
+	UFUNCTION(BlueprintCallable)
 	float GetPassedTime() const;
 
+	UFUNCTION(BlueprintCallable)
 	float GetPassedTimePercent() const;
 
 private:

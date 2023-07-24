@@ -3,7 +3,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "Warlocks/Warlocks.h"
-#include "Warlocks/Spells/WarlocksSpell.h"
 #include "WarlocksPlayerController.generated.h"
 
 class AWarlocksCharacter;
@@ -11,31 +10,6 @@ class UNiagaraSystem;
 class AWarlocksSpell;
 class UInputAction;
 class UInputMappingContext;
-
-UENUM(BlueprintType)
-enum class ESpell : uint8
-{
-	SpellQ UMETA(DisplayName = "Q Spell"),
-	SpellW UMETA(DisplayName = "W Spell"),
-	SpellE UMETA(DisplayName = "E Spell"),
-	SpellR UMETA(DisplayName = "R Spell"),
-};
-
-USTRUCT(BlueprintType)
-struct FSpellSlot
-{
-	GENERATED_BODY()
-
-	TSubclassOf<AWarlocksSpell> SpellClass;
-
-	FTimerHandle CooldownTimer;
-
-	FORCEINLINE AWarlocksSpell* GetSpellCDO() const
-	{
-		if (!SpellClass) return nullptr;
-		return SpellClass.GetDefaultObject();
-	}
-};
 
 #define GAS_INPUT_HANDLERS(Name) \
 	FORCEINLINE void Handle##Name##Pressed() { SendLocalInputToASC(true, EWarlocksAbilityInputID::##Name##); } \
@@ -48,10 +22,6 @@ class AWarlocksPlayerController : public APlayerController
 
 public:
 	AWarlocksPlayerController();
-
-	// fx for click-to-move
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UNiagaraSystem* FXCursor;
 
 	// mapping context
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
@@ -80,6 +50,8 @@ public:
 	/** debug thing */
 	UFUNCTION()
 	void DoDebugThing();
+	
+	void RotateCharacter(const FRotator& Rotation);
 
 protected:
 	virtual void SetupInputComponent() override;
@@ -96,8 +68,5 @@ private:
 	GAS_INPUT_HANDLERS(AbilityE);
 	GAS_INPUT_HANDLERS(AbilityR);
 	
-	void SendLocalInputToASC(const bool bIsPressed, const EWarlocksAbilityInputID AbilityInputID) const;
-
-	UFUNCTION()
-	void RotateCharacter(const FRotator& Rotation);
+	void SendLocalInputToASC(const bool bIsPressed, const EWarlocksAbilityInputID AbilityInputID);
 };

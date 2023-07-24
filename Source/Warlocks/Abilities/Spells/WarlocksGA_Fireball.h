@@ -1,38 +1,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Warlocks/Abilities/WarlocksGameplayAbility.h"
+#include "Warlocks/Abilities/WarlocksGA_GroundTarget.h"
 #include "WarlocksGA_Fireball.generated.h"
 
 UCLASS()
-class WARLOCKS_API UWarlocksGA_Fireball : public UWarlocksGameplayAbility
+class WARLOCKS_API UWarlocksGA_Fireball final : public UWarlocksGA_GroundTarget
 {
 	GENERATED_BODY()
 
 public:
 	UWarlocksGA_Fireball();
-	
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	                             const FGameplayAbilityActivationInfo ActivationInfo,
-	                             const FGameplayEventData* TriggerEventData) override;
 
-	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	                                const FGameplayTagContainer* SourceTags = nullptr,
-	                                const FGameplayTagContainer* TargetTags = nullptr,
-	                                OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	virtual void ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
+	                                           FGameplayTag ApplicationTag) override;
 
-	UFUNCTION()
-	void OnCancelled(FGameplayTag EventTag, FGameplayEventData EventData);
-
-	UFUNCTION()
-	void OnCompleted(FGameplayTag EventTag, FGameplayEventData EventData);
+	virtual void OnSpellCastFinish(FGameplayTag EventTag, FGameplayEventData EventData) override;
 
 private:
-	UPROPERTY()
-	TSubclassOf<class AWarlocksFireball> FireballClass;
-
-	FVector CachedTarget;
-	
 	UPROPERTY(EditDefaultsOnly)
-	float CastTime = 1.f;
+	TSubclassOf<class AWarlocksProjectileSpell> ProjectileClass;
 };

@@ -1,14 +1,10 @@
 #include "WarlocksPlayerController.h"
 
 #include "AbilitySystemComponent.h"
-#include "Blueprint/AIBlueprintHelperLibrary.h"
-#include "NiagaraSystem.h"
-#include "NiagaraFunctionLibrary.h"
 #include "WarlocksCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "WarlocksPlayerState.h"
-#include "Camera/CameraActor.h"
 
 AWarlocksPlayerController::AWarlocksPlayerController()
 {
@@ -42,7 +38,7 @@ void AWarlocksPlayerController::HandleMoveToReleased()
 }
 
 void AWarlocksPlayerController::SendLocalInputToASC(const bool bIsPressed,
-                                                    const EWarlocksAbilityInputID AbilityInputID) const
+                                                    const EWarlocksAbilityInputID AbilityInputID)
 {
 	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
 	if (!State || !State->GetAbilitySystemComponent())

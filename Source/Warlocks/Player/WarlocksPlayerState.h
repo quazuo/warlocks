@@ -3,11 +3,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
-#include "Warlocks/Abilities/Spells/WarlocksGA_Fireball.h"
+#include "GameplayAbilitySpec.h"
 #include "Warlocks/Warlocks.h"
-#include "Warlocks/Abilities/WarlocksGA_MoveTo.h"
 #include "WarlocksPlayerState.generated.h"
 
+class UGameplayAbility;
 class UWarlocksGameplayAbility;
 class UWarlocksAttributeSet;
 class UWarlocksAbilitySystemComponent;
@@ -25,9 +25,13 @@ public:
 	// IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UFUNCTION(BlueprintCallable)
 	UWarlocksAttributeSet* GetAttributeSet() const;
 	
 	void Stun();
+
+	UFUNCTION(BlueprintCallable)
+	TSubclassOf<UGameplayAbility> GetAbilityClass(const ESpell SpellSlot) const;
 
 private:
 	UPROPERTY()
@@ -37,15 +41,24 @@ private:
 	UWarlocksAttributeSet* AttributeSet;
 
 	UPROPERTY(EditDefaultsOnly)
-	const TSubclassOf<UWarlocksGameplayAbility> MoveToAbility = UWarlocksGA_MoveTo::StaticClass();
+	const TSubclassOf<UGameplayAbility> MoveToAbility;
 
-	const TSubclassOf<UWarlocksGameplayAbility> QStartupAbility = UWarlocksGA_Fireball::StaticClass();
-	const TSubclassOf<UWarlocksGameplayAbility> WStartupAbility = UWarlocksGA_Fireball::StaticClass();
-	const TSubclassOf<UWarlocksGameplayAbility> EStartupAbility = UWarlocksGA_Fireball::StaticClass();
-	const TSubclassOf<UWarlocksGameplayAbility> RStartupAbility = UWarlocksGA_Fireball::StaticClass();
+	UPROPERTY(EditDefaultsOnly)
+	const TSubclassOf<UGameplayAbility> QStartupAbility;
 
-	FGameplayAbilitySpec GetStartingAbilitySpec(const TSubclassOf<UWarlocksGameplayAbility>& StartupAbility,
-	                                            EWarlocksAbilityInputID AbilityInputID);
+	UPROPERTY(EditDefaultsOnly)
+	const TSubclassOf<UGameplayAbility> WStartupAbility;
+
+	UPROPERTY(EditDefaultsOnly)
+	const TSubclassOf<UGameplayAbility> EStartupAbility;
+
+	UPROPERTY(EditDefaultsOnly)
+	const TSubclassOf<UGameplayAbility> RStartupAbility;
+
+	FGameplayAbilitySpec QAbilitySpec, WAbilitySpec, EAbilitySpec, RAbilitySpec;
+
+	FGameplayAbilitySpec MakeStartingAbilitySpec(const TSubclassOf<UGameplayAbility>& StartupAbility,
+	                                             EWarlocksAbilityInputID AbilityInputID);
 
 	void AddStartingAbilities();
 };

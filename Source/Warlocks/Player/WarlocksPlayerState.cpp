@@ -1,11 +1,9 @@
 #include "WarlocksPlayerState.h"
 
-#include "Net/UnrealNetwork.h"
-#include "Kismet/GameplayStatics.h"
 #include "Warlocks/Warlocks.h"
 #include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
 #include "Warlocks/Abilities/WarlocksAttributeSet.h"
-#include "Warlocks/Abilities/WarlocksGameplayAbility.h"
+#include "AbilitySystemGlobals.h"
 
 AWarlocksPlayerState::AWarlocksPlayerState()
 {
@@ -54,9 +52,23 @@ void AWarlocksPlayerState::Stun() {
 
 }
 
+TSubclassOf<UGameplayAbility> AWarlocksPlayerState::GetAbilityClass(const ESpell SpellSlot) const
+{
+	switch (SpellSlot)
+	{
+	case ESpell::SpellQ: return QAbilitySpec.Ability.GetClass();
+	case ESpell::SpellW: return WAbilitySpec.Ability.GetClass();
+	case ESpell::SpellE: return EAbilitySpec.Ability.GetClass();
+	case ESpell::SpellR: return RAbilitySpec.Ability.GetClass();
+	default:
+		unimplemented();
+		return {};
+	}
+}
+
 FGameplayAbilitySpec
-AWarlocksPlayerState::GetStartingAbilitySpec(const TSubclassOf<UWarlocksGameplayAbility>& StartupAbility,
-                                             EWarlocksAbilityInputID AbilityInputID)
+AWarlocksPlayerState::MakeStartingAbilitySpec(const TSubclassOf<UGameplayAbility>& StartupAbility,
+                                              EWarlocksAbilityInputID AbilityInputID)
 {
 	return {StartupAbility, 1, static_cast<int32>(AbilityInputID), this};
 }
@@ -69,11 +81,16 @@ void AWarlocksPlayerState::AddStartingAbilities()
 		|| AbilitySystemComponent->bStartupAbilitiesGiven)
 		return;
 
-	AbilitySystemComponent->GiveAbility(GetStartingAbilitySpec(MoveToAbility, EWarlocksAbilityInputID::MoveTo));
-	AbilitySystemComponent->GiveAbility(GetStartingAbilitySpec(QStartupAbility, EWarlocksAbilityInputID::AbilityQ));
-	AbilitySystemComponent->GiveAbility(GetStartingAbilitySpec(WStartupAbility, EWarlocksAbilityInputID::AbilityW));
-	AbilitySystemComponent->GiveAbility(GetStartingAbilitySpec(EStartupAbility, EWarlocksAbilityInputID::AbilityE));
-	AbilitySystemComponent->GiveAbility(GetStartingAbilitySpec(RStartupAbility, EWarlocksAbilityInputID::AbilityR));
+	QAbilitySpec = MakeStartingAbilitySpec(QStartupAbility, EWarlocksAbilityInputID::AbilityQ);
+	WAbilitySpec = MakeStartingAbilitySpec(WStartupAbility, EWarlocksAbilityInputID::AbilityW);
+	EAbilitySpec = MakeStartingAbilitySpec(EStartupAbility, EWarlocksAbilityInputID::AbilityE);
+	RAbilitySpec = MakeStartingAbilitySpec(RStartupAbility, EWarlocksAbilityInputID::AbilityR);
+
+	AbilitySystemComponent->GiveAbility(MakeStartingAbilitySpec(MoveToAbility, EWarlocksAbilityInputID::MoveTo));
+	AbilitySystemComponent->GiveAbility(QAbilitySpec);
+	AbilitySystemComponent->GiveAbility(WAbilitySpec);
+	AbilitySystemComponent->GiveAbility(EAbilitySpec);
+	AbilitySystemComponent->GiveAbility(RAbilitySpec);
 	
 	AbilitySystemComponent->bStartupAbilitiesGiven = true;
 }

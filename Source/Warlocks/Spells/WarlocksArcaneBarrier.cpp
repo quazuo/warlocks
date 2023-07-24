@@ -1,9 +1,7 @@
 #include "WarlocksArcaneBarrier.h"
 
-#include "Warlocks/FWarlocksUtils.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
-
 #include "Warlocks/Spells/Projectile/WarlocksProjectileSpell.h"
 
 AWarlocksArcaneBarrier::AWarlocksArcaneBarrier()
@@ -15,14 +13,6 @@ AWarlocksArcaneBarrier::AWarlocksArcaneBarrier()
 	{
 		Mesh->OnComponentBeginOverlap.AddDynamic(this, &AWarlocksArcaneBarrier::OnHit);
 	}
-}
-
-TSubclassOf<UObject> AWarlocksArcaneBarrier::GetBPClassPtr()
-{
-	const auto ObjPath =
-		TEXT(
-			"/Script/Engine.Blueprint'/Game/Warlocks/Blueprints/Spells/BP_WarlocksArcaneBarrier.BP_WarlocksArcaneBarrier'");
-	return FWarlocksUtils::GetBPClassPtr(ObjPath);
 }
 
 void AWarlocksArcaneBarrier::BeginPlay()

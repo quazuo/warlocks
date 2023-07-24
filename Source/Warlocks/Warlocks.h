@@ -5,6 +5,15 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogWarlocks, Log, All);
 
 UENUM(BlueprintType)
+enum class ESpell : uint8
+{
+	SpellQ UMETA(DisplayName = "Q Spell"),
+	SpellW UMETA(DisplayName = "W Spell"),
+	SpellE UMETA(DisplayName = "E Spell"),
+	SpellR UMETA(DisplayName = "R Spell"),
+};
+
+UENUM(BlueprintType)
 enum class EWarlocksAbilityInputID : uint8
 {
 	// 0 None

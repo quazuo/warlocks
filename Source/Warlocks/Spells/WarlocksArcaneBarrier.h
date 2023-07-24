@@ -12,8 +12,6 @@ class WARLOCKS_API AWarlocksArcaneBarrier final : public AWarlocksSpell
 public:
 	AWarlocksArcaneBarrier();
 
-	static TSubclassOf<UObject> GetBPClassPtr();
-
 protected:
 	virtual void BeginPlay() override;
 

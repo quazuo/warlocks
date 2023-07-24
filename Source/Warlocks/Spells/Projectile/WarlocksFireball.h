@@ -16,8 +16,6 @@ class WARLOCKS_API AWarlocksFireball final : public AWarlocksProjectileSpell
 public:
 	AWarlocksFireball();
 	
-	static TSubclassOf<UObject> GetBPClassPtr();
-	
 	virtual void SpawnOnHitParticle() override;
 
 private:
@@ -30,6 +28,6 @@ private:
 	virtual void OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 					   int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	UParticleSystem* OnHitParticle;
 };

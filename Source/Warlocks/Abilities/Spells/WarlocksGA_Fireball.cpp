@@ -1,64 +1,47 @@
 #include "WarlocksGA_Fireball.h"
 
-#include "Warlocks/FWarlocksUtils.h"
-#include "Warlocks/Warlocks.h"
 #include "Warlocks/Abilities/Tasks/WarlocksAT_CastSpell.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
-#include "Warlocks/Spells/Projectile/WarlocksFireball.h"
+#include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
+#include "Warlocks/Spells/Projectile/WarlocksProjectileSpell.h"
 
 UWarlocksGA_Fireball::UWarlocksGA_Fireball()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
-	FireballClass = FWarlocksUtils::GetBPClassPtr(
-		TEXT("/Script/Engine.Blueprint'/Game/Warlocks/Blueprints/Spells/BP_WarlocksFireball.BP_WarlocksFireball'"));
+	SpellName = "Fireball";
+	CastTime = 1.f;
+
+	const FGameplayTag SpellTag = FGameplayTag::RequestGameplayTag("Ability.Spell.Fireball");
+	AbilityTags.AddTag(SpellTag);
 
 	const FGameplayTag StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
 	ActivationBlockedTags.AddTag(StunTag);
 }
 
-void UWarlocksGA_Fireball::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                           const FGameplayAbilityActorInfo* ActorInfo,
-                                           const FGameplayAbilityActivationInfo ActivationInfo,
-                                           const FGameplayEventData* TriggerEventData)
+void UWarlocksGA_Fireball::ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
+                                                         FGameplayTag ApplicationTag)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	const TWeakObjectPtr<APlayerController> Controller = ActorInfo ? ActorInfo->PlayerController : nullptr;
-	if (!Controller.IsValid())
-		return;
-
-	FHitResult Hit;
-	if (!Controller->GetHitResultUnderCursor(ECC_Visibility, true, Hit))
-		return;
-
-	CachedTarget = Hit.Location;
-
-	UWarlocksAT_CastSpell* Task = UWarlocksAT_CastSpell::TaskCastSpell(this, CastTime);
-	Task->OnFinish.AddDynamic(this, &UWarlocksGA_Fireball::OnCompleted);
-	Task->ReadyForActivation();
-}
-
-bool UWarlocksGA_Fireball::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                              const FGameplayAbilityActorInfo* ActorInfo,
-                                              const FGameplayTagContainer* SourceTags,
-                                              const FGameplayTagContainer* TargetTags,
-                                              FGameplayTagContainer* OptionalRelevantTags) const
-{
-	// todo - cooldown
+	Super::ActivateAbilityWithTargetData(TargetDataHandle, ApplicationTag);
 	
-	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+	// rotate character towards the target
+	if (const auto Controller = Cast<AWarlocksPlayerController>(GetCurrentActorInfo()->PlayerController))
+	{
+		const FVector WarlockLocation = GetCurrentActorInfo()->AvatarActor->GetActorLocation();
+		FVector RotationVec = CachedTarget - WarlockLocation;
+		RotationVec.Z = 0;
+		Controller->RotateCharacter(RotationVec.Rotation());
+	}
+	
+	StartSpellCast(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, &CurrentEventData);
 }
 
-void UWarlocksGA_Fireball::OnCancelled(FGameplayTag EventTag, FGameplayEventData EventData)
+void UWarlocksGA_Fireball::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEventData EventData)
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
+	Super::OnSpellCastFinish(EventTag, EventData);
 
-void UWarlocksGA_Fireball::OnCompleted(FGameplayTag EventTag, FGameplayEventData EventData)
-{
-	if (GetOwningActorFromActorInfo()->GetLocalRole() == ROLE_Authority)
+	if (CurrentActorInfo->IsNetAuthority())
 	{
 		const auto Warlock = Cast<AWarlocksCharacter>(GetAvatarActorFromActorInfo());
 		if (!Warlock)
@@ -68,14 +51,18 @@ void UWarlocksGA_Fireball::OnCompleted(FGameplayTag EventTag, FGameplayEventData
 		}
 
 		const FVector FireballLocation = Warlock->GetActorLocation();
-		const FRotator FireballRotation = (CachedTarget - FireballLocation).Rotation();
+
+		FVector FireballRotationVec = CachedTarget - FireballLocation;
+		FireballRotationVec.Z = 0;
+		const FRotator FireballRotation = FireballRotationVec.Rotation();
+
 		const FTransform FireballTransform(FireballRotation, FireballLocation);
 
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		auto Fireball = GetWorld()->SpawnActorDeferred<AWarlocksFireball>(
-			FireballClass,
+		auto Fireball = GetWorld()->SpawnActorDeferred<AWarlocksProjectileSpell>(
+			ProjectileClass,
 			FireballTransform,
 			GetOwningActorFromActorInfo(),
 			Warlock,
@@ -88,5 +75,5 @@ void UWarlocksGA_Fireball::OnCompleted(FGameplayTag EventTag, FGameplayEventData
 		}
 	}
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }

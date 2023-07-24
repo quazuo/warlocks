@@ -27,7 +27,6 @@ TSubclassOf<UObject> FWarlocksUtils::GetBPClassPtr(const TCHAR* BPObjPath)
 		return nullptr;
 	}
 
-	UE_LOG(LogWarlocks, Error, TEXT("%s|%s"), BPObjPath, *BPSpellObject.Object->GeneratedClass->GetFullName());
 	return BPSpellObject.Object->GeneratedClass;
 }
 

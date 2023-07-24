@@ -2,8 +2,6 @@
 
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Warlocks/Player/WarlocksCharacter.h"
-#include "Warlocks/Player/WarlocksPlayerState.h"
 
 AWarlocksProjectileSpell::AWarlocksProjectileSpell()
 {
@@ -46,18 +44,4 @@ void AWarlocksProjectileSpell::BeginPlay()
 void AWarlocksProjectileSpell::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	const auto OwnerWarlock = Cast<AWarlocksCharacter>(GetOwner());
-	if (!OwnerWarlock) return;
-	
-	const auto State = Cast<AWarlocksPlayerState>(OwnerWarlock->GetPlayerState());
-	if (!State) return;
-	
-	const auto Enemy = Cast<AWarlocksCharacter>(OtherActor);
-	if (!Enemy) return;
-	
-	// for (const auto &Item : State->Inventory)
-	// {
-	// 	if (Item.SpellOnHitEffect)
-	// 		Item.SpellOnHitEffect(Enemy);
-	// }
 }

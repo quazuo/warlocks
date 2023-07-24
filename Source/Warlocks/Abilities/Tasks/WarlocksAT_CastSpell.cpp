@@ -1,6 +1,9 @@
 #include "WarlocksAT_CastSpell.h"
 
-#include "Tasks/GameplayTask_WaitDelay.h"
+UWarlocksAT_CastSpell::UWarlocksAT_CastSpell()
+{
+	bSimulatedTask = true;
+}
 
 UWarlocksAT_CastSpell* UWarlocksAT_CastSpell::TaskCastSpell(TScriptInterface<IGameplayTaskOwnerInterface> TaskOwner,
                                                             const float CastTime, const uint8 Priority)
