@@ -12,6 +12,18 @@ class UWarlocksGameplayAbility;
 class UWarlocksAttributeSet;
 class UWarlocksAbilitySystemComponent;
 
+USTRUCT(BlueprintType)
+struct FCooldownData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	float Remaining;
+
+	UPROPERTY(BlueprintReadOnly)
+	float Total;
+};
+
 UCLASS(BlueprintType)
 class WARLOCKS_API AWarlocksPlayerState final : public APlayerState, public IAbilitySystemInterface
 {
@@ -29,9 +41,15 @@ public:
 	UWarlocksAttributeSet* GetAttributeSet() const;
 	
 	void Stun();
+	
+	UFUNCTION(BlueprintCallable)
+	UGameplayAbility* GetAbilityInstance(const ESpell SpellSlot) const;
 
 	UFUNCTION(BlueprintCallable)
 	TSubclassOf<UGameplayAbility> GetAbilityClass(const ESpell SpellSlot) const;
+
+	UFUNCTION(BlueprintCallable)
+	FCooldownData GetAbilityCooldownData(const ESpell SpellSlot) const;
 
 private:
 	UPROPERTY()

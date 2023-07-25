@@ -64,13 +64,15 @@ protected:
 	TSubclassOf<UGameplayEffect> CastTimeGE;
 
 	// cooldown related stuff
-	
+
+public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cooldown")
 	float CooldownDuration;
 	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldown")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cooldown")
 	FGameplayTagContainer CooldownTags;
 
+protected:
 	// Temp container that we will return the pointer to in GetCooldownTags().
 	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.
 	UPROPERTY(Transient)

@@ -53,7 +53,7 @@ void UWarlocksGameplayAbility::StartSpellCast(const FGameplayAbilitySpecHandle H
                                               const FGameplayAbilityActivationInfo ActivationInfo,
                                               const FGameplayEventData* TriggerEventData)
 {
-	if (CastTime > 0.f)
+	if (CastTime > 0.f && CastTimeGE)
 	{
 		const UGameplayEffect* EffectCDO = CastTimeGE->GetDefaultObject<UGameplayEffect>();
 		const FActiveGameplayEffectHandle Effect =
@@ -63,8 +63,10 @@ void UWarlocksGameplayAbility::StartSpellCast(const FGameplayAbilitySpecHandle H
 		Task->OnFinish.AddDynamic(this, &ThisClass::OnSpellCastFinish);
 		Task->ReadyForActivation();
 
-		const auto ASC = Cast<UWarlocksAbilitySystemComponent>(ActorInfo->AbilitySystemComponent);
-		ASC->SpellCastTask = Task;
+		if (const auto ASC = Cast<UWarlocksAbilitySystemComponent>(ActorInfo->AbilitySystemComponent))
+		{
+			ASC->SpellCastTask = Task;
+		}
 	}
 	else
 	{
