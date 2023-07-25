@@ -1,7 +1,6 @@
 #include "WarlocksGA_ClientToServer.h"
 
 #include "AbilitySystemComponent.h"
-#include "Warlocks/Warlocks.h"
 
 void UWarlocksGA_ClientToServer::ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
                                                                FGameplayTag ApplicationTag)
@@ -20,7 +19,7 @@ void UWarlocksGA_ClientToServer::NotifyTargetDataReady(const FGameplayAbilityTar
 		return;
 	}
 	
-	if (!CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
+	if (!CommitCheck(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
 	{
 		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true); // replicate cancellation
 		return;

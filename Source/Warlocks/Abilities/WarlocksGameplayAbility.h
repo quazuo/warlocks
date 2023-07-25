@@ -30,32 +30,56 @@ protected:
 	                            const FGameplayAbilityActivationInfo ActivationInfo,
 	                            const FGameplayEventData* TriggerEventData);
 
-	// this NEEDS to be overridden and implemented
+	// this should be overridden and implemented
 	UFUNCTION()
 	virtual void OnSpellCastFinish(FGameplayTag EventTag, FGameplayEventData EventData);
 
-	// this NEEDS to be overridden and implemented
+	// this should be overridden and implemented
 	virtual void ActivateServerAbility(const FGameplayAbilitySpecHandle Handle,
 	                                   const FGameplayAbilityActorInfo* ActorInfo,
 	                                   const FGameplayAbilityActivationInfo ActivationInfo,
-	                                   const FGameplayEventData* TriggerEventData);
+	                                   const FGameplayEventData* TriggerEventData)
+	{
+	}
 
-	// this NEEDS to be overridden and implemented
+	// this should be overridden and implemented
 	virtual void ActivateLocalPlayerAbility(const FGameplayAbilitySpecHandle Handle,
 	                                        const FGameplayAbilityActorInfo* ActorInfo,
 	                                        const FGameplayAbilityActivationInfo ActivationInfo,
-	                                        const FGameplayEventData* TriggerEventData);
+	                                        const FGameplayEventData* TriggerEventData)
+	{
+	}
 
 	bool bActivateAbilityOnGranted = false;
 
+	// if this ability is a spell, this is its name, which should match the name of some row in the spells' data table
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName SpellName;
 
+	// time it takes to "wind up" before the spell
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float CastTime = 0.f;
+	float CastTime;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UGameplayEffect> GE_OnActivate;
+	TSubclassOf<UGameplayEffect> CastTimeGE;
+
+	// cooldown related stuff
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cooldown")
+	float CooldownDuration;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldown")
+	FGameplayTagContainer CooldownTags;
+
+	// Temp container that we will return the pointer to in GetCooldownTags().
+	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.
+	UPROPERTY(Transient)
+	FGameplayTagContainer TempCooldownTags;
+
+	virtual const FGameplayTagContainer* GetCooldownTags() const override;
+
+	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                           const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 private:
 	FGameplayTag SpellCastTag, ChannelTag;

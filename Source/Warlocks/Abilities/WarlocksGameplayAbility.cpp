@@ -28,8 +28,6 @@ void UWarlocksGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle 
                                                const FGameplayAbilityActivationInfo ActivationInfo,
                                                const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	if (CurrentActorInfo->IsNetAuthority() && !CurrentActorInfo->IsLocallyControlled())
 		// if i'm a server for a remote player
 		ActivateServerAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -57,7 +55,7 @@ void UWarlocksGameplayAbility::StartSpellCast(const FGameplayAbilitySpecHandle H
 {
 	if (CastTime > 0.f)
 	{
-		const UGameplayEffect* EffectCDO = GE_OnActivate->GetDefaultObject<UGameplayEffect>();
+		const UGameplayEffect* EffectCDO = CastTimeGE->GetDefaultObject<UGameplayEffect>();
 		const FActiveGameplayEffectHandle Effect =
 			ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, EffectCDO, 1);
 
@@ -74,20 +72,44 @@ void UWarlocksGameplayAbility::StartSpellCast(const FGameplayAbilitySpecHandle H
 	}
 }
 
-void UWarlocksGameplayAbility::ActivateServerAbility(const FGameplayAbilitySpecHandle Handle,
-                                                     const FGameplayAbilityActorInfo* ActorInfo,
-                                                     const FGameplayAbilityActivationInfo ActivationInfo,
-                                                     const FGameplayEventData* TriggerEventData)
-{
-}
-
-void UWarlocksGameplayAbility::ActivateLocalPlayerAbility(const FGameplayAbilitySpecHandle Handle,
-                                                          const FGameplayAbilityActorInfo* ActorInfo,
-                                                          const FGameplayAbilityActivationInfo ActivationInfo,
-                                                          const FGameplayEventData* TriggerEventData)
-{
-}
-
 void UWarlocksGameplayAbility::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEventData EventData)
 {
+	if (!CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
+	{
+		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+	}
+}
+
+const FGameplayTagContainer* UWarlocksGameplayAbility::GetCooldownTags() const
+{
+	FGameplayTagContainer* MutableTags = const_cast<FGameplayTagContainer*>(&TempCooldownTags);
+
+	// MutableTags writes to the TempCooldownTags on the CDO so clear it in case the ability cooldown tags change
+	// (moved to a different slot)
+	MutableTags->Reset();
+	if (const FGameplayTagContainer* ParentTags = Super::GetCooldownTags())
+	{
+		MutableTags->AppendTags(*ParentTags);
+	}
+	MutableTags->AppendTags(CooldownTags);
+
+	return MutableTags;
+}
+
+void UWarlocksGameplayAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
+                                             const FGameplayAbilityActorInfo* ActorInfo,
+                                             const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
+	if (!CooldownGE)
+		return;
+
+	const FGameplayEffectSpecHandle SpecHandle =
+		MakeOutgoingGameplayEffectSpec(CooldownGE->GetClass(), GetAbilityLevel());
+	
+	SpecHandle.Data.Get()->DynamicGrantedTags.AppendTags(CooldownTags);
+	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Data.Cooldown"),
+	                                               CooldownDuration);
+	
+	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 }

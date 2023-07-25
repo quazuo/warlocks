@@ -12,6 +12,7 @@ UWarlocksGA_Fireball::UWarlocksGA_Fireball()
 
 	SpellName = "Fireball";
 	CastTime = 1.f;
+	CooldownDuration = 3.f;
 
 	const FGameplayTag SpellTag = FGameplayTag::RequestGameplayTag("Ability.Spell.Fireball");
 	AbilityTags.AddTag(SpellTag);
