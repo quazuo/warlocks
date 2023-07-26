@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
 #include "WarlocksAbilitySystemComponent.generated.h"
 
@@ -15,5 +14,8 @@ public:
 	bool bStartupAbilitiesGiven = false;
 
 	UPROPERTY(BlueprintReadOnly)
-	TWeakObjectPtr<class UWarlocksAT_CastSpell> SpellCastTask;
+	TWeakObjectPtr<class UWarlocksAT_Delay> SpellCastTask;
+
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<class UWarlocksAT_DelayTick> ChannelTask;
 };

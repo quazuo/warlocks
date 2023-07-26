@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WarlocksGA_GroundTarget.h"
+#include "Warlocks/Abilities/WarlocksGA_GroundTarget.h"
 #include "Abilities/GameplayAbility.h"
 #include "WarlocksGA_MoveTo.generated.h"
 
@@ -18,10 +18,6 @@ public:
 	                           const FGameplayAbilityActivationInfo ActivationInfo,
 	                           bool bReplicateCancelAbility) override;
 
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	                        const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility,
-	                        bool bWasCancelled) override;
-
 	virtual void ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
 	                                           FGameplayTag ApplicationTag) override;
 
@@ -36,7 +32,4 @@ public:
 private:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UNiagaraSystem* FXCursor;
-
-	UPROPERTY()
-	UWarlocksAT_MoveTo* ActiveTask = nullptr;
 };

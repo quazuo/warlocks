@@ -24,23 +24,23 @@ void AWarlocksFireball::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* 
 {
 	Super::OnHit(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	
-	if (OtherActor == this || OtherActor == GetOwner() || Cast<AWarlocksSpell>(OtherActor))
-		return;
-
-	const auto OwnerWarlock = Cast<AWarlocksCharacter>(GetOwner());
-	if (!OwnerWarlock) return;
-	
-	if (const auto Enemy = Cast<AWarlocksCharacter>(OtherActor))
-	{
-		// todo - apply damage
-
-		Enemy->Launch(-1 * SweepResult.Normal, Knockback);
-
-		UE_LOG(LogWarlocks, Error, TEXT("Fireball hit: %f damage"), Power);
-	}
-
-	SpawnOnHitParticle();
-	Destroy();
+	// if (OtherActor == this || OtherActor == GetOwner() || Cast<AWarlocksSpell>(OtherActor))
+	// 	return;
+	//
+	// const auto OwnerWarlock = Cast<AWarlocksCharacter>(GetOwner());
+	// if (!OwnerWarlock) return;
+	//
+	// if (const auto Enemy = Cast<AWarlocksCharacter>(OtherActor))
+	// {
+	// 	// todo - apply damage
+	//
+	// 	Enemy->Launch(-1 * SweepResult.Normal, Knockback);
+	//
+	// 	UE_LOG(LogWarlocks, Error, TEXT("Fireball hit: %f damage"), Power);
+	// }
+	//
+	// SpawnOnHitParticle();
+	// Destroy();
 }
 
 void AWarlocksFireball::SpawnOnHitParticle()

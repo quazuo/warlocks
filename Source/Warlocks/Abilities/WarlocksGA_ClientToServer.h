@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "WarlocksGameplayAbility.h"
 #include "WarlocksGA_ClientToServer.generated.h"
 

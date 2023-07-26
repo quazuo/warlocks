@@ -1,11 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Warlocks/Spells/WarlocksSpell.h"
 #include "WarlocksProjectileSpell.generated.h"
 
 UCLASS(Abstract)
-class WARLOCKS_API AWarlocksProjectileSpell : public AWarlocksSpell
+class WARLOCKS_API AWarlocksProjectileSpell : public AActor
 {
 	GENERATED_BODY()
 

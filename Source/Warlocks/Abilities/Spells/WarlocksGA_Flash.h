@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Warlocks/Abilities/WarlocksGA_GroundTarget.h"
 #include "WarlocksGA_Flash.generated.h"
 

@@ -17,11 +17,11 @@ AWarlocksArcaneBarrier::AWarlocksArcaneBarrier()
 
 void AWarlocksArcaneBarrier::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	auto Location = GetActorLocation();
 	Location.Z = 0;
 	SetActorLocation(Location);
-
-	Super::BeginPlay();
 }
 
 void AWarlocksArcaneBarrier::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

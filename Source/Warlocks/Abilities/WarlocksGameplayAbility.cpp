@@ -2,10 +2,13 @@
 
 #include "AbilitySystemComponent.h"
 #include "WarlocksAbilitySystemComponent.h"
-#include "Tasks/WarlocksAT_CastSpell.h"
+#include "Tasks/WarlocksAT_Delay.h"
+#include "Tasks/WarlocksAT_DelayTick.h"
 
 UWarlocksGameplayAbility::UWarlocksGameplayAbility()
 {
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+
 	SpellCastTag = FGameplayTag::RequestGameplayTag("Player.State.SpellCast");
 	ChannelTag = FGameplayTag::RequestGameplayTag("Player.State.Channel");
 
@@ -36,16 +39,18 @@ void UWarlocksGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle 
 		ActivateLocalPlayerAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
-void UWarlocksGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
-                                          const FGameplayAbilityActorInfo* ActorInfo,
-                                          const FGameplayAbilityActivationInfo ActivationInfo,
-                                          bool bReplicateEndAbility, bool bWasCancelled)
+void UWarlocksGameplayAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateCancelAbility)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	const FGameplayTagContainer GrantedTags{SpellCastTag};
-	ActorInfo->AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(GrantedTags);
-	BP_RemoveGameplayEffectFromOwnerWithGrantedTags(GrantedTags);
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+	
+	if (const auto ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		FGameplayTagContainer GrantedTags{SpellCastTag};
+		GrantedTags.AddTag(ChannelTag);
+		ASC->RemoveActiveEffectsWithGrantedTags(GrantedTags);
+	}
 }
 
 void UWarlocksGameplayAbility::StartSpellCast(const FGameplayAbilitySpecHandle Handle,
@@ -59,7 +64,7 @@ void UWarlocksGameplayAbility::StartSpellCast(const FGameplayAbilitySpecHandle H
 		const FActiveGameplayEffectHandle Effect =
 			ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, EffectCDO, 1);
 
-		UWarlocksAT_CastSpell* Task = UWarlocksAT_CastSpell::TaskCastSpell(this, CastTime);
+		UWarlocksAT_Delay* Task = UWarlocksAT_Delay::TaskDelay(this, CastTime);
 		Task->OnFinish.AddDynamic(this, &ThisClass::OnSpellCastFinish);
 		Task->ReadyForActivation();
 
@@ -76,10 +81,45 @@ void UWarlocksGameplayAbility::StartSpellCast(const FGameplayAbilitySpecHandle H
 
 void UWarlocksGameplayAbility::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEventData EventData)
 {
+	if (const auto ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		const FGameplayTagContainer GrantedTags{SpellCastTag};
+		ASC->RemoveActiveEffectsWithGrantedTags(GrantedTags);
+	}
+
 	if (!CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
 	{
 		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
 	}
+
+	if (ChannelTime > 0.f && ChannelGE)
+	{
+		const UGameplayEffect* EffectCDO = ChannelGE->GetDefaultObject<UGameplayEffect>();
+		const FActiveGameplayEffectHandle Effect =
+			ApplyGameplayEffectToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectCDO, 1);
+
+		UWarlocksAT_DelayTick* Task = UWarlocksAT_DelayTick::TaskDelayTick(this, ChannelTime);
+		Task->OnFinish.AddDynamic(this, &ThisClass::OnChannelFinish);
+		Task->OnTick.AddDynamic(this, &ThisClass::OnChannelTick);
+		Task->ReadyForActivation();
+
+		if (const auto ASC = Cast<UWarlocksAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent))
+		{
+			ASC->ChannelTask = Task;
+		}
+	}
+}
+
+void UWarlocksGameplayAbility::OnChannelFinish(FGameplayTag EventTag, FGameplayEventData EventData)
+{
+	
+	if (const auto ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		const FGameplayTagContainer GrantedTags{ChannelTag};
+		ASC->RemoveActiveEffectsWithGrantedTags(GrantedTags);
+	}
+
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 const FGameplayTagContainer* UWarlocksGameplayAbility::GetCooldownTags() const
@@ -105,7 +145,7 @@ void UWarlocksGameplayAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Ha
 	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
 	if (!CooldownGE)
 		return;
-
+	
 	const FGameplayEffectSpecHandle SpecHandle =
 		MakeOutgoingGameplayEffectSpec(CooldownGE->GetClass(), GetAbilityLevel());
 	

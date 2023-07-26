@@ -1,6 +1,6 @@
 #pragma once
-#include "WarlocksGA_ClientToServer.h"
 
+#include "WarlocksGA_ClientToServer.h"
 #include "WarlocksGA_GroundTarget.generated.h"
 
 UCLASS(Abstract)

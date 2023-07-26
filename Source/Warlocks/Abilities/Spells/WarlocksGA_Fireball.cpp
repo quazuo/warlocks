@@ -1,6 +1,6 @@
 #include "WarlocksGA_Fireball.h"
 
-#include "Warlocks/Abilities/Tasks/WarlocksAT_CastSpell.h"
+#include "Warlocks/Abilities/Tasks/WarlocksAT_Delay.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
 #include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
@@ -8,8 +8,6 @@
 
 UWarlocksGA_Fireball::UWarlocksGA_Fireball()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-
 	SpellName = "Fireball";
 	CastTime = 1.f;
 	CooldownDuration = 3.f;
@@ -58,9 +56,6 @@ void UWarlocksGA_Fireball::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEve
 		const FRotator FireballRotation = FireballRotationVec.Rotation();
 
 		const FTransform FireballTransform(FireballRotation, FireballLocation);
-
-		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 		auto Fireball = GetWorld()->SpawnActorDeferred<AWarlocksProjectileSpell>(
 			ProjectileClass,

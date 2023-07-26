@@ -1,14 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WarlocksSpell.h"
 #include "WarlocksMeditate.generated.h"
 
 class UParticleSystemComponent;
 class UPointLightComponent;
 
 UCLASS()
-class WARLOCKS_API AWarlocksMeditate final : public AWarlocksSpell
+class WARLOCKS_API AWarlocksMeditate final : public AActor
 {
 	GENERATED_BODY()
 

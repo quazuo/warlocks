@@ -7,8 +7,6 @@
 
 UWarlocksGA_Flash::UWarlocksGA_Flash()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-
 	SpellName = "Flash";
 	CastTime = 0.f;
 	CooldownDuration = 15.f;
