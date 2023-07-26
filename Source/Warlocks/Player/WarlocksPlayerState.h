@@ -40,7 +40,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UWarlocksAttributeSet* GetAttributeSet() const;
 	
-	void Stun();
+	void ApplyStun();
+
+	void RemoveStun();
 	
 	UFUNCTION(BlueprintCallable)
 	UGameplayAbility* GetAbilityInstance(const ESpell SpellSlot) const;
@@ -79,4 +81,9 @@ private:
 	                                             EWarlocksAbilityInputID AbilityInputID);
 
 	void AddStartingAbilities();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UGameplayEffect> StunGE;
+	
+	FGameplayTag StunTag;
 };

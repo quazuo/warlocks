@@ -1,22 +1,24 @@
 #pragma once
 
-#include "CoreMinimal.h"
-#include "WarlocksProjectileSpell.h"
-
-#include "WarlocksFireball.generated.h"
+#include "Warlocks/Abilities/Spells/WarlocksProjectile.h"
+#include "GameplayEffect.h"
+#include "WarlocksFireballProjectile.generated.h"
 
 class UParticleSystemComponent;
 class UPointLightComponent;
 
 UCLASS()
-class WARLOCKS_API AWarlocksFireball final : public AWarlocksProjectileSpell
+class WARLOCKS_API AWarlocksFireballProjectile final : public AWarlocksProjectile
 {
 	GENERATED_BODY()
 
 public:
-	AWarlocksFireball();
-	
-	virtual void SpawnOnHitParticle() override;
+	AWarlocksFireballProjectile();
+
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayEffectSpecHandle DamageEffectSpecHandle;
+
+	float Knockback;
 
 private:
 	UPROPERTY(EditAnywhere, Category = Projectile)
@@ -27,7 +29,4 @@ private:
 	
 	virtual void OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 					   int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
-	
-	UPROPERTY(EditDefaultsOnly)
-	UParticleSystem* OnHitParticle;
 };

@@ -24,8 +24,8 @@ protected:
 
 private:
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AWarlocksMeditate> MeditateAuraClass;
+	TSubclassOf<class AWarlocksMeditateAura> MeditateAuraClass;
 
 	UPROPERTY()
-	AWarlocksMeditate* MeditateAura;
+	AWarlocksMeditateAura* MeditateAura;
 };

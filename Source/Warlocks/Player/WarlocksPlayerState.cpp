@@ -27,6 +27,8 @@ AWarlocksPlayerState::AWarlocksPlayerState()
 	// Set PlayerState's NetUpdateFrequency to the same as the Character.
 	// Default is very low for PlayerStates and introduces perceived lag in the ability system.
 	NetUpdateFrequency = 10.0f;
+
+	StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
 }
 
 void AWarlocksPlayerState::BeginPlay()
@@ -49,8 +51,15 @@ UWarlocksAttributeSet* AWarlocksPlayerState::GetAttributeSet() const
 	return AttributeSet;
 }
 
-void AWarlocksPlayerState::Stun()
+void AWarlocksPlayerState::ApplyStun()
 {
+	
+}
+
+void AWarlocksPlayerState::RemoveStun()
+{
+	const FGameplayTagContainer GrantedTags{StunTag};
+	AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(GrantedTags);
 }
 
 UGameplayAbility* AWarlocksPlayerState::GetAbilityInstance(const ESpell SpellSlot) const

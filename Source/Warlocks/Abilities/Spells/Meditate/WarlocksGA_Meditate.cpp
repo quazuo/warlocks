@@ -3,7 +3,7 @@
 #include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerState.h"
-#include "Warlocks/Spells/WarlocksMeditate.h"
+#include "WarlocksMeditateAura.h"
 
 UWarlocksGA_Meditate::UWarlocksGA_Meditate()
 {
@@ -61,10 +61,10 @@ void UWarlocksGA_Meditate::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEve
 			return;
 		}
 
-		MeditateAura = GetWorld()->SpawnActorDeferred<AWarlocksMeditate>(
+		MeditateAura = GetWorld()->SpawnActorDeferred<AWarlocksMeditateAura>(
 			MeditateAuraClass,
 			Warlock->GetActorTransform(),
-			GetAvatarActorFromActorInfo(),
+			GetOwningActorFromActorInfo(),
 			Warlock,
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
 		);

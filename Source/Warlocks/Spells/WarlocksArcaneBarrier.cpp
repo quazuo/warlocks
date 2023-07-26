@@ -2,7 +2,7 @@
 
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Warlocks/Spells/Projectile/WarlocksProjectileSpell.h"
+#include "Warlocks/Abilities/Spells/WarlocksProjectile.h"
 
 AWarlocksArcaneBarrier::AWarlocksArcaneBarrier()
 {
@@ -31,7 +31,7 @@ void AWarlocksArcaneBarrier::OnHit(UPrimitiveComponent* OverlappedComponent, AAc
 	if (OtherActor == this || OtherActor == GetOwner() || !GetOwner())
 		return;
 
-	if (const auto Projectile = Cast<AWarlocksProjectileSpell>(OtherActor))
+	if (const auto Projectile = Cast<AWarlocksProjectile>(OtherActor))
 	{
 		Projectile->SpawnOnHitParticle();
 		OtherActor->Destroy();

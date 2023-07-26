@@ -36,7 +36,7 @@ AWarlocksCharacter::AWarlocksCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	// multiplayer stuff
+	// replication stuff
 	bReplicates = true;
 	Super::SetReplicateMovement(true);
 }
@@ -73,7 +73,6 @@ void AWarlocksCharacter::Tick(const float DeltaSeconds)
 void AWarlocksCharacter::Launch(const FVector Direction, const float Force)
 {
 	if (!GetController()) return;
-
 	GetController()->StopMovement();
 	LaunchCharacter(Direction * Force, false, false);
 }

@@ -18,5 +18,5 @@ public:
 
 private:
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AWarlocksProjectileSpell> ProjectileClass;
+	TSubclassOf<class AWarlocksProjectile> ProjectileClass;
 };

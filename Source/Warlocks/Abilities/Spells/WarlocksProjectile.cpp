@@ -1,9 +1,10 @@
-#include "WarlocksProjectileSpell.h"
+#include "WarlocksProjectile.h"
 
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
-AWarlocksProjectileSpell::AWarlocksProjectileSpell()
+AWarlocksProjectile::AWarlocksProjectile()
 {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
 
@@ -11,7 +12,7 @@ AWarlocksProjectileSpell::AWarlocksProjectileSpell()
 	CollisionSphere->InitSphereRadius(15);
 	CollisionSphere->BodyInstance.SetCollisionProfileName(TEXT("Projectile"));
 	if (GetLocalRole() == ROLE_Authority)
-		CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWarlocksProjectileSpell::OnHit);
+		CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWarlocksProjectile::OnHit);
 	RootComponent = CollisionSphere;
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(
@@ -27,10 +28,10 @@ AWarlocksProjectileSpell::AWarlocksProjectileSpell()
 	ProjectileMesh->SetRelativeScale3D(FVector(0.1));
 	ProjectileMesh->SetupAttachment(RootComponent);
 
-	InitialLifeSpan = 10;
+	InitialLifeSpan = 10.f;
 }
 
-void AWarlocksProjectileSpell::BeginPlay()
+void AWarlocksProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -41,7 +42,8 @@ void AWarlocksProjectileSpell::BeginPlay()
 	CollisionSphere->SetSphereRadius(ProjectileHitboxRadius);
 }
 
-void AWarlocksProjectileSpell::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AWarlocksProjectile::SpawnOnHitParticle()
 {
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), OnHitParticle, GetActorLocation(),
+	                                         FRotator::ZeroRotator, FVector(.3));
 }

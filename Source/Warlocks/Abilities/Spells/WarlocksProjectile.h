@@ -1,26 +1,26 @@
 #pragma once
 
-#include "CoreMinimal.h"
-#include "WarlocksProjectileSpell.generated.h"
+#include "WarlocksSpellActor.h"
+#include "WarlocksProjectile.generated.h"
 
 UCLASS(Abstract)
-class WARLOCKS_API AWarlocksProjectileSpell : public AActor
+class WARLOCKS_API AWarlocksProjectile : public AWarlocksSpellActor
 {
 	GENERATED_BODY()
 
 public:
-	AWarlocksProjectileSpell();
+	AWarlocksProjectile();
 
 protected:
 	virtual void BeginPlay() override;
 	
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-					   int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+					   int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {}
 	
 public:
 	UFUNCTION()
-	virtual void SpawnOnHitParticle() {}
+	virtual void SpawnOnHitParticle();
 	
 	// stats
 
@@ -49,4 +49,7 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	UStaticMeshComponent* ProjectileMesh;
+
+	UPROPERTY(EditDefaultsOnly)
+	UParticleSystem* OnHitParticle;
 };

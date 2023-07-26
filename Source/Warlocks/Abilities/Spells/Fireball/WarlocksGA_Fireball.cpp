@@ -1,10 +1,11 @@
 #include "WarlocksGA_Fireball.h"
 
+#include "WarlocksFireballProjectile.h"
 #include "Warlocks/Abilities/Tasks/WarlocksAT_Delay.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
 #include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
-#include "Warlocks/Spells/Projectile/WarlocksProjectileSpell.h"
+#include "Warlocks/Abilities/Spells/WarlocksProjectile.h"
 
 UWarlocksGA_Fireball::UWarlocksGA_Fireball()
 {
@@ -23,7 +24,7 @@ void UWarlocksGA_Fireball::ActivateAbilityWithTargetData(const FGameplayAbilityT
                                                          FGameplayTag ApplicationTag)
 {
 	Super::ActivateAbilityWithTargetData(TargetDataHandle, ApplicationTag);
-	
+
 	// rotate character towards the target
 	if (const auto Controller = Cast<AWarlocksPlayerController>(GetCurrentActorInfo()->PlayerController))
 	{
@@ -32,7 +33,7 @@ void UWarlocksGA_Fireball::ActivateAbilityWithTargetData(const FGameplayAbilityT
 		RotationVec.Z = 0;
 		Controller->RotateCharacter(RotationVec.Rotation());
 	}
-	
+
 	StartSpellCast(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, &CurrentEventData);
 }
 
@@ -57,7 +58,7 @@ void UWarlocksGA_Fireball::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEve
 
 		const FTransform FireballTransform(FireballRotation, FireballLocation);
 
-		auto Fireball = GetWorld()->SpawnActorDeferred<AWarlocksProjectileSpell>(
+		auto Fireball = GetWorld()->SpawnActorDeferred<AWarlocksFireballProjectile>(
 			ProjectileClass,
 			FireballTransform,
 			GetOwningActorFromActorInfo(),
@@ -66,7 +67,17 @@ void UWarlocksGA_Fireball::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEve
 		);
 		if (Fireball)
 		{
-			// Fireball->DamageEffectSpecHandle = DamageEffectSpecHandle;
+			if (HealthModifierGE)
+			{
+				const FGameplayEffectSpecHandle DamageEffectSpecHandle =
+					MakeOutgoingGameplayEffectSpec(HealthModifierGE, GetAbilityLevel());
+				DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
+					FGameplayTag::RequestGameplayTag("Data.Damage"), Power);
+
+				Fireball->DamageEffectSpecHandle = DamageEffectSpecHandle;
+				Fireball->Knockback = Knockback;
+			}	
+
 			Fireball->FinishSpawning(FireballTransform);
 		}
 	}

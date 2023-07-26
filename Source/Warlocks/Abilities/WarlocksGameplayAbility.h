@@ -45,11 +45,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Spell)
 	FName SpellName;
 
+	// this spell's power. in most cases this will be just the damage or healing this ability inflicts to the target.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Spell)
+	float Power = 0.f;
+
+	// GE applied to the target. in most cases this will be just a plain "damage" or "healing" GE.
+	UPROPERTY(EditDefaultsOnly, Category = Spell)
+	TSubclassOf<UGameplayEffect> HealthModifierGE;
+
+	// if relevant (e.g. for projectiles), the magnitude of the knockback this ability applies.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Spell)
+	float Knockback = 0.f;
+
 	// time it takes to "wind up" before the spell. set to 0 if it should happen immediately
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Spell)
 	float CastTime = 0.f;
 
-	// gameplay effect applied to the character while casting the spell
+	// GE applied to the character while casting the spell
 	UPROPERTY(EditDefaultsOnly, Category = Spell)
 	TSubclassOf<UGameplayEffect> CastTimeGE;
 
@@ -67,7 +79,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spell|Channel")
 	float ChannelTime = 0.f;
 
-	// gameplay effect applied to the character while channelling the spell
+	// GE applied to the character while channelling the spell
 	UPROPERTY(EditDefaultsOnly, Category = "Spell|Channel")
 	TSubclassOf<UGameplayEffect> ChannelGE;
 

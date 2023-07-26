@@ -89,8 +89,7 @@ void UWarlocksAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 
 			if (TargetCharacter && WasAlive)
 			{
-				 UE_LOG(LogTemp, Log, TEXT("%s Damage Received: %f"),
-				        *GetOwningActor()->GetName(), LocalDamageDone);
+				 UE_LOG(LogTemp, Log, TEXT("%s Damage Received: %f"), *GetOwningActor()->GetName(), LocalDamageDone);
 			}
 		}
 	}

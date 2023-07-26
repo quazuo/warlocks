@@ -1,11 +1,10 @@
-#include "WarlocksMeditate.h"
+#include "WarlocksMeditateAura.h"
 
 #include "AssetViewWidgets.h"
 #include "Components/PointLightComponent.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "Warlocks/Warlocks.h"
 
-AWarlocksMeditate::AWarlocksMeditate()
+AWarlocksMeditateAura::AWarlocksMeditateAura()
 {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 
@@ -20,13 +19,12 @@ AWarlocksMeditate::AWarlocksMeditate()
 	bReplicates = true;
 }
 
-void AWarlocksMeditate::BeginPlay()
+void AWarlocksMeditateAura::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (const auto Warlock = GetOwner())
+	if (const auto Warlock = GetInstigator())
 	{
-		UE_LOG(LogWarlocks, Error, TEXT("%s"), *Warlock->GetActorNameOrLabel());
 		RootComponent->AttachToComponent(Warlock->GetRootComponent(), { EAttachmentRule::SnapToTarget, false });
 	}
 }
