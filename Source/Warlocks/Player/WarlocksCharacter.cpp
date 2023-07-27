@@ -61,18 +61,6 @@ void AWarlocksCharacter::Tick(const float DeltaSeconds)
 			State->RemoveStun();
 		}
 	}
-
-	// apply damage if standing on lava
-	if (const auto GameMode = Cast<AWarlocksGameMode>(UGameplayStatics::GetGameMode(this)))
-	{
-		const auto SafeZoneRadius = GameMode->GetCurrentSafeZoneRadius();
-		const auto MyLocation = GetActorLocation();
-
-		if (pow(MyLocation.X, 2) + pow(MyLocation.Y, 2) > pow(SafeZoneRadius, 2))
-		{
-			TakeDamage(GameMode->LavaDamage * DeltaSeconds, FDamageEvent(), nullptr, this);
-		}
-	}
 }
 
 void AWarlocksCharacter::ApplyKnockback(const FVector Direction, const float Force)

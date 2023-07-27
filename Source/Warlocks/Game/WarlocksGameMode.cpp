@@ -1,9 +1,9 @@
 #include "WarlocksGameMode.h"
 
 #include "WarlocksGameState.h"
+#include "Actors/WarlocksSafeZone.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Engine/StaticMeshActor.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
 #include "Warlocks/Player/WarlocksPlayerState.h"
@@ -18,14 +18,15 @@ AWarlocksGameMode::AWarlocksGameMode()
 
 	// find the safe zone actor
 	TArray<AActor*> Actors;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "SafeZone", Actors);
-
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWarlocksSafeZone::StaticClass(), Actors);
 	if (!Actors.IsEmpty())
 	{
-		if (const auto Actor = Cast<AStaticMeshActor>(Actors[0]))
-		{
-			SafeZone = Actor;
-		}
+		SafeZone = Cast<AWarlocksSafeZone>(Actors[0]);
+	}
+
+	if (!SafeZone)
+	{
+		UE_LOG(LogWarlocks, Error, TEXT("No SafeZone actor could be found"));
 	}
 }
 
@@ -40,9 +41,11 @@ void AWarlocksGameMode::Tick(float DeltaSeconds)
 	int AlivePlayerCount = 0;
 	AWarlocksPlayerState* WinnerState = nullptr;
 
+	// TickLavaDamage(DeltaSeconds);
+
 	for (const auto &Player : GameState->PlayerArray)
 	{
-		const auto WarlocksState = Cast<AWarlocksPlayerState>(Player);
+		// const auto WarlocksState = Cast<AWarlocksPlayerState>(Player);
 		// if (WarlocksState && !WarlocksState->bIsDead)
 		// {
 		// 	AlivePlayerCount++;
@@ -57,39 +60,23 @@ void AWarlocksGameMode::Tick(float DeltaSeconds)
 	}
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 
-float AWarlocksGameMode::GetCurrentSafeZoneRadius() const
+
+void AWarlocksGameMode::TickLavaDamage(const float DeltaTime) const
 {
-	const float Width = SafeZone->GetStaticMeshComponent()->GetStaticMesh()->GetBoundingBox().GetSize().X;
-	return Width * CurrentSafeZoneScale / 2;
-}
+	const auto SafeZoneRadius = SafeZone->GetCurrentSafeZoneRadius();
 
-void AWarlocksGameMode::ResetSafeZone()
-{
-	FVector CurrScale = SafeZone->GetStaticMeshComponent()->GetRelativeScale3D();
-	
-	CurrScale.X = RoundBeginSafeZoneScale;
-	CurrScale.Y = CurrScale.X;
-
-	SafeZone->GetStaticMeshComponent()->SetRelativeScale3D(CurrScale);
-	CurrentSafeZoneScale = RoundBeginSafeZoneScale;
-}
-
-void AWarlocksGameMode::ShrinkSafeZone()
-{
-	FVector CurrScale = SafeZone->GetStaticMeshComponent()->GetRelativeScale3D();
-	
-	CurrScale.X -= SafeZoneShrinkDiff;
-	if (CurrScale.X < MinSafeZoneScale)
-		CurrScale.X = MinSafeZoneScale;
-	CurrScale.Y = CurrScale.X;
-	
-	SafeZone->GetStaticMeshComponent()->SetRelativeScale3D(CurrScale);
-	CurrentSafeZoneScale = CurrScale.X;
-
-	const auto State = GetGameState<AWarlocksGameState>();
-	if (State)
+	for (const auto &PlayerState : GameState->PlayerArray)
 	{
-		State->Announce("The safe zone has shrunk!");
+		const auto MyPlayerState = Cast<AWarlocksPlayerState>(PlayerState);
+		const auto Warlock = Cast<AWarlocksCharacter>(PlayerState->GetPawn());
+		if (!MyPlayerState || !Warlock) continue;
+
+		const auto Location = Warlock->GetActorLocation();
+
+		if (Location.Length() > SafeZoneRadius)
+		{
+			MyPlayerState->ApplyDamage(DeltaTime * LavaDamage);
+		}
 	}
 }
 
@@ -117,14 +104,8 @@ void AWarlocksGameMode::StartRound()
 {
 	UE_LOG(LogGameMode, Error, TEXT("Starting round..."));
 	bIsRoundTransition = false;
-	ResetSafeZone();
+	SafeZone->ResetSafeZone();
 	ResetPlayers();
-
-	// setup shrinking of the safe zone on an interval
-	FTimerDelegate ShrinkDelegate;
-	ShrinkDelegate.BindUFunction(this, FName("ShrinkSafeZone"));
-	GetWorldTimerManager().ClearTimer(SafeZoneTimer);
-	GetWorldTimerManager().SetTimer(SafeZoneTimer, ShrinkDelegate, SafeZoneShrinkInterval, true);
 }
 
 void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)

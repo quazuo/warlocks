@@ -40,6 +40,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UWarlocksAttributeSet* GetAttributeSet() const;
+
+	UFUNCTION(BlueprintCallable)
+	void ApplyDamage(const float Damage);
 	
 	void ApplyStun();
 
@@ -82,6 +85,9 @@ private:
 	                                             EWarlocksAbilityInputID AbilityInputID);
 
 	void AddStartingAbilities();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> DamageGE;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGameplayEffect> HealthRegenGE;

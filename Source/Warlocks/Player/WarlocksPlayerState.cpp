@@ -57,6 +57,27 @@ UWarlocksAttributeSet* AWarlocksPlayerState::GetAttributeSet() const
 	return AttributeSet;
 }
 
+void AWarlocksPlayerState::ApplyDamage(const float Damage)
+{
+	if (!AbilitySystemComponent) return;
+
+	if (!DamageGE)
+	{
+		UE_LOG(LogWarlocks, Warning, TEXT("Tried to apply damage without DamageGE set to a valid GE"));
+		return;
+	}
+
+	const FGameplayEffectSpecHandle DamageEffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageGE, 1, {});
+	if (const FGameplayEffectSpec* EffectSpec = DamageEffectSpecHandle.Data.Get())
+	{
+		DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
+			FGameplayTag::RequestGameplayTag("Data.Damage"),
+			Damage
+		);
+		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpec);
+	}
+}
+
 void AWarlocksPlayerState::ApplyStun()
 {
 	AbilitySystemComponent->CancelAbilities(&StunCancelTags);
@@ -101,15 +122,15 @@ FCooldownData AWarlocksPlayerState::GetAbilityCooldownData(const ESpell SpellSlo
 	const auto Ability = Cast<UWarlocksGameplayAbility>(GetAbilityInstance(SpellSlot));
 	if (!Ability)
 		return {0.f, 1.f};
-	
+
 	if (!AbilitySystemComponent || Ability->CooldownTags.IsEmpty())
 		return {0.f, Ability->CooldownDuration};
-	
+
 	FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(Ability->CooldownTags);
 	TArray<float> DurationAndTimeRemaining = AbilitySystemComponent->GetActiveEffectsTimeRemaining(Query);
 
 	float CooldownRemaining = 0.f;
-	
+
 	if (DurationAndTimeRemaining.Num() > 0)
 	{
 		CooldownRemaining = DurationAndTimeRemaining[0];

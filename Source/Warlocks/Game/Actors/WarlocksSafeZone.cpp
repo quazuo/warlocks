@@ -1,0 +1,66 @@
+#include "WarlocksSafeZone.h"
+
+#include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Warlocks/Game/WarlocksGameState.h"
+
+AWarlocksSafeZone::AWarlocksSafeZone()
+{
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	RootComponent = Mesh;
+	Mesh->SetWorldScale3D({RoundBeginSafeZoneScale, RoundBeginSafeZoneScale, .25});
+
+	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("TriggerCapsuleComponent"));
+	TriggerCapsule->SetupAttachment(RootComponent);
+	
+	bReplicates = true;
+}
+
+float AWarlocksSafeZone::GetCurrentSafeZoneRadius() const
+{
+	const auto Width = Mesh->GetStaticMesh()->GetBoundingBox().GetSize().X;
+	return Width * CurrentSafeZoneScale / 2;
+}
+
+void AWarlocksSafeZone::ResetSafeZone()
+{
+	UpdateMeshScale(RoundBeginSafeZoneScale);
+	UpdateCapsuleSize();
+
+	// setup shrinking of the safe zone on an interval
+	FTimerDelegate ShrinkDelegate;
+	ShrinkDelegate.BindUFunction(this, FName("ShrinkSafeZone"));
+	GetWorldTimerManager().ClearTimer(ShrinkTimer);
+	GetWorldTimerManager().SetTimer(ShrinkTimer, ShrinkDelegate, SafeZoneShrinkInterval, true);
+}
+
+void AWarlocksSafeZone::ShrinkSafeZone()
+{
+	const float NewMeshScale = UKismetMathLibrary::Max(
+		MinSafeZoneScale,
+		Mesh->GetRelativeScale3D().X - SafeZoneShrinkDiff
+	);
+	UpdateMeshScale(NewMeshScale);
+	UpdateCapsuleSize();
+	
+	if (const auto State = Cast<AWarlocksGameState>(UGameplayStatics::GetGameState(GetWorld())))
+	{
+		State->Announce("The safe zone has shrunk!");
+	}
+}
+
+void AWarlocksSafeZone::UpdateMeshScale(const float Scale)
+{
+	FVector CurrScale = Mesh->GetRelativeScale3D();
+	CurrScale.X = Scale;
+	CurrScale.Y = CurrScale.X;
+	Mesh->SetRelativeScale3D(CurrScale);
+	CurrentSafeZoneScale = CurrScale.X;
+}
+
+void AWarlocksSafeZone::UpdateCapsuleSize() const
+{
+	const float Radius = GetCurrentSafeZoneRadius();
+	TriggerCapsule->SetCapsuleSize(Radius, UKismetMathLibrary::Max(Radius, 500));
+}
