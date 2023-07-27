@@ -55,6 +55,11 @@ void AWarlocksCharacter::Tick(const float DeltaSeconds)
 		{
 			MyController->StopMovement();
 		}
+
+		if (const auto State = Cast<AWarlocksPlayerState>(GetPlayerState()))
+		{
+			State->RemoveStun();
+		}
 	}
 
 	// apply damage if standing on lava
@@ -70,11 +75,19 @@ void AWarlocksCharacter::Tick(const float DeltaSeconds)
 	}
 }
 
-void AWarlocksCharacter::Launch(const FVector Direction, const float Force)
+void AWarlocksCharacter::ApplyKnockback(const FVector Direction, const float Force)
 {
-	if (!GetController()) return;
-	GetController()->StopMovement();
+	if (GetController())
+	{
+		GetController()->StopMovement();
+	}
+	
 	LaunchCharacter(Direction * Force, false, false);
+
+	if (const auto State = Cast<AWarlocksPlayerState>(GetPlayerState()))
+	{
+		State->ApplyStun();
+	}
 }
 
 void AWarlocksCharacter::PossessedBy(AController* NewController)

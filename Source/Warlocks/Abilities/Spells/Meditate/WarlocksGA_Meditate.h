@@ -22,10 +22,15 @@ protected:
 
 	virtual void OnSpellCastFinish(FGameplayTag EventTag, FGameplayEventData EventData) override;
 
+	virtual void OnChannelFinish(FGameplayTag EventTag, FGameplayEventData EventData) override;
+
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AWarlocksMeditateAura> MeditateAuraClass;
 
 	UPROPERTY()
 	AWarlocksMeditateAura* MeditateAura;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> MeditateRegenGE;
 };

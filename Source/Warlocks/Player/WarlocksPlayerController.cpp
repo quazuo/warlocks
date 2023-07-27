@@ -59,7 +59,7 @@ void AWarlocksPlayerController::DoDebugThing()
 	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
 	if (Warlock)
 	{
-		Warlock->Launch(FVector::ForwardVector, 1000);
+		Warlock->ApplyKnockback(FVector::ForwardVector, 1000);
 	}
 }
 

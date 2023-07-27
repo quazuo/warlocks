@@ -18,9 +18,9 @@ protected:
 	                             const FGameplayAbilityActivationInfo ActivationInfo,
 	                             const FGameplayEventData* TriggerEventData) override;
 
-	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	                           const FGameplayAbilityActivationInfo ActivationInfo,
-	                           bool bReplicateCancelAbility) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                        const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility,
+	                        bool bWasCancelled) override;
 	// ~ UGameplayAbility overrides
 
 	// this should be overridden and implemented
@@ -66,8 +66,7 @@ protected:
 	TSubclassOf<UGameplayEffect> CastTimeGE;
 
 	// this most certainly doesn't need to be overridden, but the option is there
-	virtual void StartSpellCast(const FGameplayAbilitySpecHandle Handle,
-	                            const FGameplayAbilityActorInfo* ActorInfo,
+	virtual void StartSpellCast(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                            const FGameplayAbilityActivationInfo ActivationInfo,
 	                            const FGameplayEventData* TriggerEventData);
 
@@ -75,13 +74,8 @@ protected:
 	UFUNCTION()
 	virtual void OnSpellCastFinish(FGameplayTag EventTag, FGameplayEventData EventData);
 
-	// time it takes to channel the spell
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spell|Channel")
-	float ChannelTime = 0.f;
-
-	// GE applied to the character while channelling the spell
-	UPROPERTY(EditDefaultsOnly, Category = "Spell|Channel")
-	TSubclassOf<UGameplayEffect> ChannelGE;
+	UFUNCTION()
+	virtual void StartChannel();
 
 	// called every tick while channelling the spell.
 	// if relevant, this should be overridden and implemented
@@ -94,7 +88,17 @@ protected:
 	UFUNCTION()
 	virtual void OnChannelFinish(FGameplayTag EventTag, FGameplayEventData EventData);
 
-	// cooldown related stuff
+	// time it takes to channel the spell
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spell|Channel")
+	float ChannelTime = 0.f;
+
+	// GE applied to the character while channelling the spell
+	UPROPERTY(EditDefaultsOnly, Category = "Spell|Channel")
+	TSubclassOf<UGameplayEffect> ChannelGE;
+
+	/*
+	 * cooldown related stuff
+	 */
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spell|Cooldown")
@@ -113,6 +117,18 @@ protected:
 
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                           const FGameplayAbilityActivationInfo ActivationInfo) const override;
+
+	/*
+	 * Gameplay effect utils
+	 */
+
+	FActiveGameplayEffectHandle ApplyGameplayEffectToOwner(TSubclassOf<UGameplayEffect> Class) const;
+
+	FActiveGameplayEffectHandle ApplySetByCallerEffectToOwner(TSubclassOf<UGameplayEffect> Class, FGameplayTag DataTag,
+	                                                          float Magnitude) const;
+
+	void RemoveGameplayEffectFromOwner(const FGameplayTag Tag) const;
+	void RemoveGameplayEffectFromOwner(const std::initializer_list<FGameplayTag> Tags) const;
 
 	FGameplayTag SpellCastTag, ChannelTag;
 };

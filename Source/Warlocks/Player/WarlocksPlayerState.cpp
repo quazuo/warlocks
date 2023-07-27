@@ -28,6 +28,7 @@ AWarlocksPlayerState::AWarlocksPlayerState()
 	// Default is very low for PlayerStates and introduces perceived lag in the ability system.
 	NetUpdateFrequency = 10.0f;
 
+	StunCancelTags.AddTag(FGameplayTag::RequestGameplayTag("Ability"));
 	StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
 }
 
@@ -38,6 +39,11 @@ void AWarlocksPlayerState::BeginPlay()
 	if (IsValid(AbilitySystemComponent))
 	{
 		AddStartingAbilities();
+
+		if (HealthRegenGE)
+		{
+			AbilitySystemComponent->ApplyGameplayEffectToSelf(HealthRegenGE.GetDefaultObject(), 1, {});
+		}
 	}
 }
 
@@ -53,7 +59,14 @@ UWarlocksAttributeSet* AWarlocksPlayerState::GetAttributeSet() const
 
 void AWarlocksPlayerState::ApplyStun()
 {
-	
+	AbilitySystemComponent->CancelAbilities(&StunCancelTags);
+
+	if (!StunGE)
+	{
+		UE_LOG(LogWarlocks, Warning, TEXT("Tried to apply stun without StunGE set to a valid GE"));
+		return;
+	}
+	AbilitySystemComponent->ApplyGameplayEffectToSelf(StunGE.GetDefaultObject(), 1, {});
 }
 
 void AWarlocksPlayerState::RemoveStun()

@@ -8,6 +8,7 @@
 #include "WarlocksPlayerState.generated.h"
 
 class UGameplayAbility;
+class UGameplayEffect;
 class UWarlocksGameplayAbility;
 class UWarlocksAttributeSet;
 class UWarlocksAbilitySystemComponent;
@@ -83,7 +84,12 @@ private:
 	void AddStartingAbilities();
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class UGameplayEffect> StunGE;
+	TSubclassOf<UGameplayEffect> HealthRegenGE;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> StunGE;
 	
 	FGameplayTag StunTag;
+
+	FGameplayTagContainer StunCancelTags;
 };

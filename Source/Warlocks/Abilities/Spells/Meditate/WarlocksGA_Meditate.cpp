@@ -39,18 +39,18 @@ void UWarlocksGA_Meditate::EndAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	MeditateAura->Destroy();
-
-	if (const auto ASC = GetAbilitySystemComponentFromActorInfo())
+	if (MeditateAura)
 	{
-		const FGameplayTagContainer GrantedTags{ChannelTag};
-		ASC->RemoveActiveEffectsWithGrantedTags(GrantedTags);
+		MeditateAura->Destroy();
 	}
+	RemoveGameplayEffectFromOwner(FGameplayTag::RequestGameplayTag("Status.Meditate"));
 }
 
 void UWarlocksGA_Meditate::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEventData EventData)
 {
 	Super::OnSpellCastFinish(EventTag, EventData);
+	
+	ApplySetByCallerEffectToOwner(MeditateRegenGE, FGameplayTag::RequestGameplayTag("Data.Meditate.Regen"), Power);
 
 	if (CurrentActorInfo->IsNetAuthority())
 	{
@@ -61,17 +61,22 @@ void UWarlocksGA_Meditate::OnSpellCastFinish(FGameplayTag EventTag, FGameplayEve
 			return;
 		}
 
-		MeditateAura = GetWorld()->SpawnActorDeferred<AWarlocksMeditateAura>(
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = GetOwningActorFromActorInfo();
+		SpawnParameters.Instigator = Warlock;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		MeditateAura = GetWorld()->SpawnActor<AWarlocksMeditateAura>(
 			MeditateAuraClass,
 			Warlock->GetActorTransform(),
-			GetOwningActorFromActorInfo(),
-			Warlock,
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+			SpawnParameters
 		);
-		if (MeditateAura)
-		{
-			// todo - maybe something about healing? idk yet
-			MeditateAura->FinishSpawning(Warlock->GetActorTransform());
-		}
 	}
+}
+
+void UWarlocksGA_Meditate::OnChannelFinish(FGameplayTag EventTag, FGameplayEventData EventData)
+{
+	Super::OnChannelFinish(EventTag, EventData);
+
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

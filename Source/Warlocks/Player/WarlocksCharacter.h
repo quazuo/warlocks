@@ -27,7 +27,7 @@ protected:
 
 public:
 	UFUNCTION()
-	void Launch(FVector Direction, const float Force);
+	void ApplyKnockback(FVector Direction, const float Force);
 
 	TWeakObjectPtr<UWarlocksAbilitySystemComponent> AbilitySystemComponent;
 	

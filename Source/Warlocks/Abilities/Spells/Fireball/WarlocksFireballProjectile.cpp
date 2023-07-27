@@ -37,7 +37,7 @@ void AWarlocksFireballProjectile::OnHit(UPrimitiveComponent* OverlappedComponent
 			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
 		}
 	
-		TargetWarlock->Launch(-1 * SweepResult.Normal, Knockback);
+		TargetWarlock->ApplyKnockback(-1 * SweepResult.Normal, Knockback);
 	}
 	
 	SpawnOnHitParticle();
