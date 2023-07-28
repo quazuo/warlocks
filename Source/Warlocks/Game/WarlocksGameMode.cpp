@@ -1,12 +1,12 @@
 #include "WarlocksGameMode.h"
 
 #include "WarlocksGameState.h"
-#include "Actors/WarlocksSafeZone.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
 #include "Warlocks/Player/WarlocksPlayerState.h"
+#include "Actors/WarlocksSafeZone.h"
 
 AWarlocksGameMode::AWarlocksGameMode()
 {
@@ -23,8 +23,7 @@ AWarlocksGameMode::AWarlocksGameMode()
 	{
 		SafeZone = Cast<AWarlocksSafeZone>(Actors[0]);
 	}
-
-	if (!SafeZone)
+	else
 	{
 		UE_LOG(LogWarlocks, Error, TEXT("No SafeZone actor could be found"));
 	}
@@ -39,9 +38,7 @@ void AWarlocksGameMode::BeginPlay()
 void AWarlocksGameMode::Tick(float DeltaSeconds)
 {
 	int AlivePlayerCount = 0;
-	AWarlocksPlayerState* WinnerState = nullptr;
-
-	// TickLavaDamage(DeltaSeconds);
+	const AWarlocksPlayerState* WinnerState = nullptr;
 
 	for (const auto &Player : GameState->PlayerArray)
 	{
@@ -58,26 +55,6 @@ void AWarlocksGameMode::Tick(float DeltaSeconds)
 		bIsRoundTransition = true;
 		EndRound(WinnerState);
 	}
-}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-
-
-void AWarlocksGameMode::TickLavaDamage(const float DeltaTime) const
-{
-	const auto SafeZoneRadius = SafeZone->GetCurrentSafeZoneRadius();
-
-	for (const auto &PlayerState : GameState->PlayerArray)
-	{
-		const auto MyPlayerState = Cast<AWarlocksPlayerState>(PlayerState);
-		const auto Warlock = Cast<AWarlocksCharacter>(PlayerState->GetPawn());
-		if (!MyPlayerState || !Warlock) continue;
-
-		const auto Location = Warlock->GetActorLocation();
-
-		if (Location.Length() > SafeZoneRadius)
-		{
-			MyPlayerState->ApplyDamage(DeltaTime * LavaDamage);
-		}
-	}
 }
 
 void AWarlocksGameMode::ResetPlayers()
@@ -86,11 +63,8 @@ void AWarlocksGameMode::ResetPlayers()
 	
 	for (const auto &Player : GameState->PlayerArray)
 	{
-		const auto WarlocksState = Cast<AWarlocksPlayerState>(Player);
-		if (WarlocksState)
+		if (const auto WarlocksState = Cast<AWarlocksPlayerState>(Player))
 		{
-			WarlocksState->Reset();
-			
 			const auto Warlock = Cast<AWarlocksCharacter>(WarlocksState->GetPawn());
 			const auto CharacterController = Cast<AWarlocksPlayerController>(Warlock->GetController());
 
@@ -108,19 +82,17 @@ void AWarlocksGameMode::StartRound()
 	ResetPlayers();
 }
 
-void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)
+void AWarlocksGameMode::EndRound(const AWarlocksPlayerState* WinnerState)
 {
 	UE_LOG(LogGameMode, Error, TEXT("Ending round..."));
-
-	const auto State = GetGameState<AWarlocksGameState>();
-	if (State)
+	
+	if (const auto State = GetGameState<AWarlocksGameState>())
 	{
-		const FString Announcement = FString::Printf(TEXT("Player %d has won the round!"), WinnerState->GetPlayerId());
-		State->Announce(Announcement);
+		const FText PlayerName = FText::FromString(WinnerState->GetPlayerName());
+		State->GetAnnouncer()->AnnouncePlayerDeath(PlayerName);
 	}
 	
-	const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn());
-	if (Warlock)
+	if (const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn()))
 	{
 		//WinnerState->bIsVictorious = true;
 		//WinnerState->bIsStunned = true;
@@ -130,8 +102,6 @@ void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)
 		const FVector Vec = {-1, 0, 0};
 		Warlock->SetActorRotation(Vec.Rotation());
 	}
-	
-	GetWorldTimerManager().ClearTimer(SafeZoneTimer);
 
 	FTimerDelegate RoundTransitionDelegate;
 	RoundTransitionDelegate.BindUFunction(this, FName("StartRound"));

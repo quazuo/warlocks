@@ -3,6 +3,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 #include "Warlocks/Game/WarlocksGameState.h"
 
 AWarlocksSafeZone::AWarlocksSafeZone()
@@ -10,11 +11,20 @@ AWarlocksSafeZone::AWarlocksSafeZone()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	RootComponent = Mesh;
 	Mesh->SetWorldScale3D({RoundBeginSafeZoneScale, RoundBeginSafeZoneScale, .25});
+	Mesh->SetIsReplicated(true);
 
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("TriggerCapsuleComponent"));
 	TriggerCapsule->SetupAttachment(RootComponent);
+	TriggerCapsule->SetIsReplicated(true);
 	
 	bReplicates = true;
+}
+
+void AWarlocksSafeZone::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(AWarlocksSafeZone, CurrentSafeZoneScale, COND_None, REPNOTIFY_Always);
 }
 
 float AWarlocksSafeZone::GetCurrentSafeZoneRadius() const
@@ -46,7 +56,7 @@ void AWarlocksSafeZone::ShrinkSafeZone()
 	
 	if (const auto State = Cast<AWarlocksGameState>(UGameplayStatics::GetGameState(GetWorld())))
 	{
-		State->Announce("The safe zone has shrunk!");
+		State->GetAnnouncer()->AnnounceSafeZoneShrink();
 	}
 }
 
@@ -56,6 +66,7 @@ void AWarlocksSafeZone::UpdateMeshScale(const float Scale)
 	CurrScale.X = Scale;
 	CurrScale.Y = CurrScale.X;
 	Mesh->SetRelativeScale3D(CurrScale);
+	Mesh->SetWorldScale3D(CurrScale);
 	CurrentSafeZoneScale = CurrScale.X;
 }
 
@@ -63,4 +74,12 @@ void AWarlocksSafeZone::UpdateCapsuleSize() const
 {
 	const float Radius = GetCurrentSafeZoneRadius();
 	TriggerCapsule->SetCapsuleSize(Radius, UKismetMathLibrary::Max(Radius, 500));
+}
+
+void AWarlocksSafeZone::RepNotify_CurrentSafeZoneScale() const
+{
+	if (const auto State = Cast<AWarlocksGameState>(UGameplayStatics::GetGameState(GetWorld())))
+	{
+		State->GetAnnouncer()->AnnounceSafeZoneShrink();
+	}
 }

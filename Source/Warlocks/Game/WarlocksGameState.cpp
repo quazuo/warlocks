@@ -1,21 +1,35 @@
 #include "WarlocksGameState.h"
 
-void AWarlocksGameState::Announce_Implementation(const FString& Text)
+#include "Kismet/GameplayStatics.h"
+#include "Actors/WarlocksSafeZone.h"
+#include "Warlocks/Warlocks.h"
+
+AWarlocksGameState::AWarlocksGameState()
 {
-	AnnouncementQueue.Enqueue(Text);
 }
 
-bool AWarlocksGameState::IsAnnouncement() const
+void AWarlocksGameState::BeginPlay()
 {
-	return !AnnouncementQueue.IsEmpty();
+	Super::BeginPlay();
+
+	// create the announcer object, which handles announcements displayed on the screen
+	if (AnnouncerClass)
+	{
+		Announcer = NewObject<UWarlocksAnnouncer>(this, AnnouncerClass, "WarlocksAnnouncer");
+	}
+	else
+	{
+		UE_LOG(LogWarlocks, Error, TEXT("No announcer class!"));
+	}
 }
 
-FString AWarlocksGameState::GetAnnouncement()
+void AWarlocksGameState::MulticastResetSafeZone_Implementation(AWarlocksSafeZone* SafeZone)
 {
-	if (AnnouncementQueue.IsEmpty())
-		return "";
+	if (!SafeZone)
+	{
+		UE_LOG(LogWarlocks, Error, TEXT("MulticastResetSafeZone() called without a valid SafeZone actor found"));
+		return;
+	}
 
-	FString Announcement;
-	AnnouncementQueue.Dequeue(Announcement);
-	return Announcement;
+	SafeZone->ResetSafeZone();
 }

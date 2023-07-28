@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Actors/WarlocksAnnouncer.h"
 #include "GameFramework/GameStateBase.h"
 #include "WarlocksGameState.generated.h"
 
@@ -10,15 +11,21 @@ class WARLOCKS_API AWarlocksGameState : public AGameStateBase
 	GENERATED_BODY()
 
 public:
+	AWarlocksGameState();
+	
+	virtual void BeginPlay() override;
+
 	UFUNCTION(NetMulticast, Reliable)
-	void Announce(const FString &Text);
-
+	void MulticastResetSafeZone(AWarlocksSafeZone* SafeZone);
+	
 	UFUNCTION(BlueprintCallable)
-	bool IsAnnouncement() const;
+	FORCEINLINE UWarlocksAnnouncer* GetAnnouncer() const { return Announcer; }
 
-	UFUNCTION(BlueprintCallable)
-	FString GetAnnouncement();
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UWarlocksAnnouncer> AnnouncerClass = UWarlocksAnnouncer::StaticClass();
 
 private:
-	TQueue<FString> AnnouncementQueue;
+	UPROPERTY()
+	UWarlocksAnnouncer* Announcer;
 };

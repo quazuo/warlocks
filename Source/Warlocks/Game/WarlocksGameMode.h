@@ -19,29 +19,20 @@ protected:
 
 	virtual void Tick(float DeltaSeconds) override;
 	
-	// gamemode constants
-
-	/** The damage lava applies per second to characters standing on it */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float LavaDamage = 1;
-
 	/**
 	 * The time which passes between round end and start. During the transition, the winner's character plays
 	 * a special winner animation and the winner's name is announced.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float RoundTransitionTime = 5;
+	float RoundTransitionTime = 5.f;
 
 private:
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	class AWarlocksSafeZone* SafeZone;
-
-	FTimerHandle SafeZoneTimer;
+	
 	FTimerHandle RoundTransitionTimer;
 
 	bool bIsRoundTransition = false;
-	
-	void TickLavaDamage(const float DeltaTime) const;
 
 	UFUNCTION()
 	void ResetPlayers();
@@ -50,7 +41,7 @@ private:
 	void StartRound();
 
 	UFUNCTION()
-	void EndRound(AWarlocksPlayerState* WinnerState);
+	void EndRound(const AWarlocksPlayerState* WinnerState);
 };
 
 

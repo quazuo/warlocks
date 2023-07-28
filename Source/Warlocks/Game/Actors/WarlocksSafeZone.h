@@ -10,16 +10,18 @@ class AWarlocksSafeZone : public AActor
 public:
 	AWarlocksSafeZone();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentSafeZoneRadius() const;
 
 	UFUNCTION(BlueprintCallable)
-	void ResetSafeZone();
-
-	UFUNCTION(BlueprintCallable)
-	void ShrinkSafeZone();
+	void ResetSafeZone();  
 
 protected:
+	UFUNCTION(BlueprintCallable)
+	void ShrinkSafeZone();
+	
 	/** The scale of the safe zone at the beginning of each round */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float RoundBeginSafeZoneScale = 30;
@@ -36,7 +38,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int SafeZoneShrinkInterval = 30;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(ReplicatedUsing = RepNotify_CurrentSafeZoneScale, VisibleAnywhere, BlueprintReadOnly)
 	float CurrentSafeZoneScale = RoundBeginSafeZoneScale;
 
 private:
@@ -51,4 +53,7 @@ private:
 	void UpdateMeshScale(const float Scale);
 
 	void UpdateCapsuleSize() const;
+
+	UFUNCTION()
+	void RepNotify_CurrentSafeZoneScale() const;
 };
