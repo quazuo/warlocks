@@ -18,6 +18,8 @@ class WARLOCKS_API UWarlocksAttributeSet final : public UAttributeSet
 
 public:
 	UWarlocksAttributeSet();
+
+	void Reset();
 	
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
@@ -64,4 +66,14 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MoveSpeed(const FGameplayAttributeData& OldMoveSpeed);
+
+private:
+	UPROPERTY(EditDefaultsOnly)
+	float InitMaxHealthValue = 100.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float InitHealthRegenValue = 0.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float InitMoveSpeedValue = 100.f;
 };

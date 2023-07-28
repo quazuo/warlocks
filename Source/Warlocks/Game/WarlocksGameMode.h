@@ -41,7 +41,7 @@ private:
 	void StartRound();
 
 	UFUNCTION()
-	void EndRound(const AWarlocksPlayerState* WinnerState);
+	void EndRound(AWarlocksPlayerState* WinnerState);
 };
 
 

@@ -16,7 +16,10 @@ public:
 	float GetCurrentSafeZoneRadius() const;
 
 	UFUNCTION(BlueprintCallable)
-	void ResetSafeZone();  
+	void ResetSafeZone();
+
+	UFUNCTION(BlueprintCallable)
+	void StopSafeZoneShrinking();
 
 protected:
 	UFUNCTION(BlueprintCallable)

@@ -38,16 +38,16 @@ void AWarlocksGameMode::BeginPlay()
 void AWarlocksGameMode::Tick(float DeltaSeconds)
 {
 	int AlivePlayerCount = 0;
-	const AWarlocksPlayerState* WinnerState = nullptr;
+	AWarlocksPlayerState* WinnerState = nullptr;
 
 	for (const auto &Player : GameState->PlayerArray)
 	{
-		// const auto WarlocksState = Cast<AWarlocksPlayerState>(Player);
-		// if (WarlocksState && !WarlocksState->bIsDead)
-		// {
-		// 	AlivePlayerCount++;
-		// 	WinnerState = WarlocksState;
-		// }
+		const auto WarlocksState = Cast<AWarlocksPlayerState>(Player);
+		if (WarlocksState && !WarlocksState->IsDead())
+		{
+			AlivePlayerCount++;
+			WinnerState = WarlocksState;
+		}
 	}
 
 	if (!bIsRoundTransition && GameState->PlayerArray.Num() > 1 && AlivePlayerCount == 1 && WinnerState)
@@ -65,10 +65,12 @@ void AWarlocksGameMode::ResetPlayers()
 	{
 		if (const auto WarlocksState = Cast<AWarlocksPlayerState>(Player))
 		{
+			WarlocksState->Reset();
+			
 			const auto Warlock = Cast<AWarlocksCharacter>(WarlocksState->GetPawn());
 			const auto CharacterController = Cast<AWarlocksPlayerController>(Warlock->GetController());
 
-			CharacterController->GetPawn()->Destroy();
+			Warlock->Destroy();
 			RestartPlayer(CharacterController);
 		}
 	}
@@ -82,20 +84,22 @@ void AWarlocksGameMode::StartRound()
 	ResetPlayers();
 }
 
-void AWarlocksGameMode::EndRound(const AWarlocksPlayerState* WinnerState)
+void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)
 {
 	UE_LOG(LogGameMode, Error, TEXT("Ending round..."));
+
+	SafeZone->StopSafeZoneShrinking();
 	
 	if (const auto State = GetGameState<AWarlocksGameState>())
 	{
 		const FText PlayerName = FText::FromString(WinnerState->GetPlayerName());
-		State->GetAnnouncer()->AnnouncePlayerDeath(PlayerName);
+		State->GetAnnouncer()->AnnouncePlayerRoundVictory(PlayerName);
 	}
 	
 	if (const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn()))
 	{
-		//WinnerState->bIsVictorious = true;
-		//WinnerState->bIsStunned = true;
+		WinnerState->StartCheering();
+		WinnerState->ApplyStun();
 		Warlock->GetController()->StopMovement();
 
 		// rotate towards the camera (forwards)

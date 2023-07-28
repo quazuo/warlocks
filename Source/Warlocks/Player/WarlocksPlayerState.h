@@ -35,17 +35,28 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void Reset() override;
+
 	// IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	// ~IAbilitySystemInterface
 
 	UFUNCTION(BlueprintCallable)
 	UWarlocksAttributeSet* GetAttributeSet() const;
 
 	UFUNCTION(BlueprintCallable)
+	bool IsDead() const;
+
+	UFUNCTION(BlueprintCallable)
 	void ApplyDamage(const float Damage);
-	
+
+	UFUNCTION(BlueprintCallable)
+	void StartCheering();
+
+	UFUNCTION(BlueprintCallable)
 	void ApplyStun();
 
+	UFUNCTION(BlueprintCallable)
 	void RemoveStun();
 	
 	UFUNCTION(BlueprintCallable)
@@ -94,6 +105,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGameplayEffect> StunGE;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> CheerGE;
 	
 	FGameplayTag StunTag;
 

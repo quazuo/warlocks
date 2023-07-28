@@ -45,6 +45,11 @@ void AWarlocksSafeZone::ResetSafeZone()
 	GetWorldTimerManager().SetTimer(ShrinkTimer, ShrinkDelegate, SafeZoneShrinkInterval, true);
 }
 
+void AWarlocksSafeZone::StopSafeZoneShrinking()
+{
+	GetWorldTimerManager().ClearTimer(ShrinkTimer);
+}
+
 void AWarlocksSafeZone::ShrinkSafeZone()
 {
 	const float NewMeshScale = UKismetMathLibrary::Max(

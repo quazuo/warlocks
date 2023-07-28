@@ -8,12 +8,15 @@
 
 UWarlocksAttributeSet::UWarlocksAttributeSet()
 {
-	InitMaxHealth(100.f);
-	InitHealth(GetMaxHealth());
-	InitHealthRegen(0.f);
-	InitMoveSpeed(100.f);
+	Reset();
+}
 
-	// maybe cache tags?
+void UWarlocksAttributeSet::Reset()
+{
+	InitMaxHealth(InitMaxHealthValue);
+	InitHealth(GetMaxHealth());
+	InitHealthRegen(InitHealthRegenValue);
+	InitMoveSpeed(InitMoveSpeedValue);
 }
 
 void UWarlocksAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)

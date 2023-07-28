@@ -47,6 +47,13 @@ void AWarlocksPlayerState::BeginPlay()
 	}
 }
 
+void AWarlocksPlayerState::Reset()
+{
+	Super::Reset();
+	AttributeSet->Reset();
+	AbilitySystemComponent->RemoveActiveEffects({});
+}
+
 UAbilitySystemComponent* AWarlocksPlayerState::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
@@ -55,6 +62,17 @@ UAbilitySystemComponent* AWarlocksPlayerState::GetAbilitySystemComponent() const
 UWarlocksAttributeSet* AWarlocksPlayerState::GetAttributeSet() const
 {
 	return AttributeSet;
+}
+
+bool AWarlocksPlayerState::IsDead() const
+{
+	if (!AttributeSet)
+	{
+		UE_LOG(LogWarlocks, Error, TEXT("Tried to call IsDead() without a valid AttributeSet"));
+		return false;
+	}
+	
+	return AttributeSet->GetHealth() == 0;
 }
 
 void AWarlocksPlayerState::ApplyDamage(const float Damage)
@@ -76,6 +94,20 @@ void AWarlocksPlayerState::ApplyDamage(const float Damage)
 		);
 		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpec);
 	}
+}
+
+void AWarlocksPlayerState::StartCheering()
+{
+	if (!CheerGE)
+	{
+		UE_LOG(LogWarlocks, Warning, TEXT("Tried to start cheering without CheerGE set to a valid GE"));
+		return;
+	}
+
+	const FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag("Player.State.Cheer");
+	const FGameplayTagContainer Tags(AbilityTag);
+	AbilitySystemComponent->CancelAbilities(&Tags);
+	AbilitySystemComponent->ApplyGameplayEffectToSelf(CheerGE.GetDefaultObject(), 1, {});
 }
 
 void AWarlocksPlayerState::ApplyStun()
@@ -162,16 +194,28 @@ void AWarlocksPlayerState::AddStartingAbilities()
 		|| AbilitySystemComponent->bStartupAbilitiesGiven)
 		return;
 
-	QAbilitySpec = MakeStartingAbilitySpec(QStartupAbility, EWarlocksAbilityInputID::AbilityQ);
-	WAbilitySpec = MakeStartingAbilitySpec(WStartupAbility, EWarlocksAbilityInputID::AbilityW);
-	EAbilitySpec = MakeStartingAbilitySpec(EStartupAbility, EWarlocksAbilityInputID::AbilityE);
-	RAbilitySpec = MakeStartingAbilitySpec(RStartupAbility, EWarlocksAbilityInputID::AbilityR);
-
 	AbilitySystemComponent->GiveAbility(MakeStartingAbilitySpec(MoveToAbility, EWarlocksAbilityInputID::MoveTo));
-	AbilitySystemComponent->GiveAbility(QAbilitySpec);
-	AbilitySystemComponent->GiveAbility(WAbilitySpec);
-	AbilitySystemComponent->GiveAbility(EAbilitySpec);
-	AbilitySystemComponent->GiveAbility(RAbilitySpec);
 
+	if (QStartupAbility)
+	{
+		QAbilitySpec = MakeStartingAbilitySpec(QStartupAbility, EWarlocksAbilityInputID::AbilityQ);
+		AbilitySystemComponent->GiveAbility(QAbilitySpec);
+	}
+	if (WStartupAbility)
+	{
+		WAbilitySpec = MakeStartingAbilitySpec(WStartupAbility, EWarlocksAbilityInputID::AbilityW);
+		AbilitySystemComponent->GiveAbility(WAbilitySpec);
+	}
+	if (EStartupAbility)
+	{
+		EAbilitySpec = MakeStartingAbilitySpec(EStartupAbility, EWarlocksAbilityInputID::AbilityE);
+		AbilitySystemComponent->GiveAbility(EAbilitySpec);
+	}
+	if (RStartupAbility)
+	{
+		RAbilitySpec = MakeStartingAbilitySpec(RStartupAbility, EWarlocksAbilityInputID::AbilityR);
+		AbilitySystemComponent->GiveAbility(RAbilitySpec);
+	}
+	
 	AbilitySystemComponent->bStartupAbilitiesGiven = true;
 }

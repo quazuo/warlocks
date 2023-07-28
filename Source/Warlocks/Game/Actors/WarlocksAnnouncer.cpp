@@ -5,43 +5,53 @@
 
 void UWarlocksAnnouncer::AnnouncePlayerDeath(const FText PlayerName)
 {
-	if (!StringTable)
-	{
-		UE_LOG(LogWarlocks, Error, TEXT("No StringTable set for the Announcer"));
-		return;
-	}
-
-	const FString StringTableId = StringTable->GetStringTableId().ToString();
-	const FText Text = FText::FromStringTable(StringTable->GetStringTableId(), "PlayerDeath");
 	const FFormatNamedArguments NamedArgs = {
 		{"PlayerName", PlayerName}
 	};
 
-	Announce(Text, NamedArgs);
+	Announce("PlayerDeath", NamedArgs);
+}
+
+void UWarlocksAnnouncer::AnnouncePlayerRoundVictory(const FText PlayerName)
+{
+	const FFormatNamedArguments NamedArgs = {
+		{"PlayerName", PlayerName}
+	};
+
+	Announce("PlayerRoundVictory", NamedArgs);
 }
 
 void UWarlocksAnnouncer::AnnounceSafeZoneShrink()
+{
+	Announce("SafeZoneShrink");
+}
+
+void UWarlocksAnnouncer::Announce(const FString& Key)
 {
 	if (!StringTable)
 	{
 		UE_LOG(LogWarlocks, Error, TEXT("No StringTable set for the Announcer"));
 		return;
 	}
-
+	
 	const FString StringTableId = StringTable->GetStringTableId().ToString();
-	const FText Text = FText::FromStringTable(StringTable->GetStringTableId(), "SafeZoneShrink");
-
-	Announce(Text);
-}
-
-void UWarlocksAnnouncer::Announce(const FText Text)
-{
+	const FText Text = FText::FromStringTable(StringTable->GetStringTableId(), Key);
+	
 	AnnouncementQueue.Enqueue(Text);
 }
 
-void UWarlocksAnnouncer::Announce(const FText Text, const FFormatNamedArguments& NamedArguments)
+void UWarlocksAnnouncer::Announce(const FString& Key, const FFormatNamedArguments& NamedArguments)
 {
+	if (!StringTable)
+	{
+		UE_LOG(LogWarlocks, Error, TEXT("No StringTable set for the Announcer"));
+		return;
+	}
+	
+	const FString StringTableId = StringTable->GetStringTableId().ToString();
+	const FText Text = FText::FromStringTable(StringTable->GetStringTableId(), Key);
 	const FText FormattedText = FText::Format(Text, NamedArguments);
+	
 	AnnouncementQueue.Enqueue(FormattedText);
 }
 

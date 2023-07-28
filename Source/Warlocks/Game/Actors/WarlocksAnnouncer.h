@@ -12,6 +12,9 @@ class WARLOCKS_API UWarlocksAnnouncer final : public UObject
 public:
 	UFUNCTION(BlueprintCallable)
 	void AnnouncePlayerDeath(const FText PlayerName);
+
+	UFUNCTION(BlueprintCallable)
+	void AnnouncePlayerRoundVictory(const FText PlayerName);
 	
 	UFUNCTION(BlueprintCallable)
 	void AnnounceSafeZoneShrink();
@@ -26,8 +29,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UStringTable* StringTable;
 	
-	void Announce(const FText Text);
-	void Announce(const FText Text, const FFormatNamedArguments& NamedArguments);
+	void Announce(const FString& Key);
+	void Announce(const FString& Key, const FFormatNamedArguments& NamedArguments);
 	
 	TQueue<FText> AnnouncementQueue;
 };
