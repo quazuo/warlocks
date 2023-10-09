@@ -94,8 +94,17 @@ void AWarlocksCharacter::PossessedBy(AController* NewController)
 
 void AWarlocksCharacter::BindAbilitiesToInput(UInputComponent* PlayerInputComponent) const
 {
-	if (!PlayerInputComponent)
-		return;
+ 	if (!PlayerInputComponent)
+ 	{
+ 		UE_LOG(LogWarlocks, Error, TEXT("BindAbilitiesToInput(): no PlayerInputComponent"));
+ 		return;
+ 	}
+ 	
+ 	if (!AbilitySystemComponent.IsValid())
+    {
+     	UE_LOG(LogWarlocks, Error, TEXT("BindAbilitiesToInput(): no valid AbilitySystemComponent"));
+     	return;
+    }
 	
 	// Bind to AbilitySystemComponent
 	const FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(

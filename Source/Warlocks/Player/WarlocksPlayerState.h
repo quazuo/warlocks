@@ -35,6 +35,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	virtual void Reset() override;
 
 	// IAbilitySystemInterface
@@ -108,8 +110,13 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGameplayEffect> CheerGE;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> DeathGE;
 	
-	FGameplayTag StunTag;
+	FGameplayTag StunTag, DeadTag;
 
 	FGameplayTagContainer StunCancelTags;
+
+	void OnDeath();
 };

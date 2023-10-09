@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Kismet/GameplayStatics.h"
+#include "Warlocks.h"
 
 class WARLOCKS_API FWarlocksUtils
 {
@@ -28,4 +30,22 @@ public:
 	 * @return The desired class.
 	 */
 	static TSubclassOf<UObject> GetBPClassPtr_Runtime(const TCHAR* BPObjPath);
+
+    /**
+     * Find any instance of an actor of the templated class and return a pointer to it.
+     * @param World The world context.
+     * @return Pointer to a found actor, NULL if not found.
+     */
+	template<typename T>
+	static T* FindActor(UWorld *World) {
+		TArray<AActor*> Actors;
+		UGameplayStatics::GetAllActorsOfClass(World, T::StaticClass(), Actors);
+		if (Actors.IsEmpty())
+		{
+			UE_LOG(LogWarlocks, Error, TEXT("FindActor() by class %s failed"), *AActor::StaticClass()->GetName());
+			return nullptr;
+		}
+	
+		return Cast<T>(Actors[0]);
+	}
 };

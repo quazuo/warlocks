@@ -19,13 +19,9 @@ public:
 	void MulticastResetSafeZone(AWarlocksSafeZone* SafeZone);
 	
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE UWarlocksAnnouncer* GetAnnouncer() const { return Announcer; }
-
-protected:
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UWarlocksAnnouncer> AnnouncerClass = UWarlocksAnnouncer::StaticClass();
+	FORCEINLINE AWarlocksAnnouncer* GetAnnouncer() const { return Announcer; }
 
 private:
 	UPROPERTY()
-	UWarlocksAnnouncer* Announcer;
+	AWarlocksAnnouncer* Announcer;
 };

@@ -62,7 +62,6 @@ private:
 	void HandleMoveToPressed();
 	void HandleMoveToReleased();
 	
-	//GAS_INPUT_HANDLERS(MoveTo);
 	GAS_INPUT_HANDLERS(AbilityQ);
 	GAS_INPUT_HANDLERS(AbilityW);
 	GAS_INPUT_HANDLERS(AbilityE);

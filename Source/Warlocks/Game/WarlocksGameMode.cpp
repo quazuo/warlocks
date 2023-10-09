@@ -7,6 +7,7 @@
 #include "Warlocks/Player/WarlocksPlayerController.h"
 #include "Warlocks/Player/WarlocksPlayerState.h"
 #include "Actors/WarlocksSafeZone.h"
+#include "Warlocks/FWarlocksUtils.h"
 
 AWarlocksGameMode::AWarlocksGameMode()
 {
@@ -17,21 +18,13 @@ AWarlocksGameMode::AWarlocksGameMode()
 	PlayerStateClass = AWarlocksPlayerState::StaticClass();
 
 	// find the safe zone actor
-	TArray<AActor*> Actors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWarlocksSafeZone::StaticClass(), Actors);
-	if (!Actors.IsEmpty())
-	{
-		SafeZone = Cast<AWarlocksSafeZone>(Actors[0]);
-	}
-	else
-	{
-		UE_LOG(LogWarlocks, Error, TEXT("No SafeZone actor could be found"));
-	}
+	SafeZone = FWarlocksUtils::FindActor<AWarlocksSafeZone>(GetWorld());
 }
 
 void AWarlocksGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	StartRound();
 }
 
@@ -93,7 +86,7 @@ void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)
 	if (const auto State = GetGameState<AWarlocksGameState>())
 	{
 		const FText PlayerName = FText::FromString(WinnerState->GetPlayerName());
-		State->GetAnnouncer()->AnnouncePlayerRoundVictory(PlayerName);
+		State->GetAnnouncer()->Server_AnnouncePlayerRoundVictory(PlayerName);
 	}
 	
 	if (const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn()))

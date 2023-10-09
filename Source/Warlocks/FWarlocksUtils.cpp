@@ -1,5 +1,5 @@
 #include "FWarlocksUtils.h"
-
+#include "Kismet/GameplayStatics.h"
 #include "Warlocks.h"
 
 TArray<FRotator> FWarlocksUtils::GetSpreadRotators(const FRotator& BaseRotation, const unsigned int Count,

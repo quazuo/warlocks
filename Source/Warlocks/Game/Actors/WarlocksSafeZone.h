@@ -59,4 +59,6 @@ private:
 
 	UFUNCTION()
 	void RepNotify_CurrentSafeZoneScale() const;
+
+	void AnnounceSafeZoneShrink() const;
 };

@@ -5,32 +5,36 @@
 #include "WarlocksAnnouncer.generated.h"
 
 UCLASS(Blueprintable)
-class WARLOCKS_API UWarlocksAnnouncer final : public UObject
+class WARLOCKS_API AWarlocksAnnouncer final : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable)
-	void AnnouncePlayerDeath(const FText PlayerName);
+	AWarlocksAnnouncer();
+	
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void Server_AnnouncePlayerDeath(const FText& PlayerName);
 
-	UFUNCTION(BlueprintCallable)
-	void AnnouncePlayerRoundVictory(const FText PlayerName);
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void Server_AnnouncePlayerRoundVictory(const FText& PlayerName);
+	
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void Server_AnnounceSafeZoneShrink();
 	
 	UFUNCTION(BlueprintCallable)
-	void AnnounceSafeZoneShrink();
-
-	UFUNCTION(BlueprintCallable)
 	bool IsAnnouncement() const;
-
+	
 	UFUNCTION(BlueprintCallable)
 	FText GetAnnouncement();
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	UStringTable* StringTable;
-	
-	void Announce(const FString& Key);
-	void Announce(const FString& Key, const FFormatNamedArguments& NamedArguments);
+
+	FText GetAnnouncementString(const FString& Key, const FFormatNamedArguments NamedArguments = {}) const;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_Announce(const FText& Text);
 	
 	TQueue<FText> AnnouncementQueue;
 };

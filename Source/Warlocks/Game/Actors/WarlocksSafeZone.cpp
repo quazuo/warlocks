@@ -59,10 +59,7 @@ void AWarlocksSafeZone::ShrinkSafeZone()
 	UpdateMeshScale(NewMeshScale);
 	UpdateCapsuleSize();
 	
-	if (const auto State = Cast<AWarlocksGameState>(UGameplayStatics::GetGameState(GetWorld())))
-	{
-		State->GetAnnouncer()->AnnounceSafeZoneShrink();
-	}
+	AnnounceSafeZoneShrink();
 }
 
 void AWarlocksSafeZone::UpdateMeshScale(const float Scale)
@@ -83,8 +80,17 @@ void AWarlocksSafeZone::UpdateCapsuleSize() const
 
 void AWarlocksSafeZone::RepNotify_CurrentSafeZoneScale() const
 {
-	if (const auto State = Cast<AWarlocksGameState>(UGameplayStatics::GetGameState(GetWorld())))
+	AnnounceSafeZoneShrink();
+}
+
+void AWarlocksSafeZone::AnnounceSafeZoneShrink() const
+{
+	if (GetLocalRole() != ROLE_Authority) 
+		return;
+	
+	const auto State = Cast<AWarlocksGameState>(UGameplayStatics::GetGameState(GetWorld()));
+	if (State && State->GetAnnouncer())
 	{
-		State->GetAnnouncer()->AnnounceSafeZoneShrink();
+		State->GetAnnouncer()->Server_AnnounceSafeZoneShrink();
 	}
 }

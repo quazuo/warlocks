@@ -10,6 +10,7 @@ AWarlocksPlayerController::AWarlocksPlayerController()
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
+	bAutoManageActiveCameraTarget = false;
 }
 
 void AWarlocksPlayerController::HandleMoveToPressed()
@@ -56,8 +57,7 @@ void AWarlocksPlayerController::SendLocalInputToASC(const bool bIsPressed,
 
 void AWarlocksPlayerController::DoDebugThing()
 {
-	const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter());
-	if (Warlock)
+	if (const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter()))
 	{
 		Warlock->ApplyKnockback(FVector::ForwardVector, 1000);
 	}
@@ -76,10 +76,8 @@ void AWarlocksPlayerController::BeginPlay()
 
 void AWarlocksPlayerController::SetupInputComponent()
 {
-	// set up gameplay key bindings
 	Super::SetupInputComponent();
 
-	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
 		EnhancedInputComponent->BindAction(MoveToAction, ETriggerEvent::Started, this,

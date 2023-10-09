@@ -4,7 +4,10 @@
 #include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
 #include "Warlocks/Abilities/WarlocksAttributeSet.h"
 #include "AbilitySystemGlobals.h"
+#include "AI/NavigationSystemBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Warlocks/Abilities/WarlocksGameplayAbility.h"
+#include "Warlocks/Game/WarlocksGameState.h"
 
 AWarlocksPlayerState::AWarlocksPlayerState()
 {
@@ -28,8 +31,12 @@ AWarlocksPlayerState::AWarlocksPlayerState()
 	// Default is very low for PlayerStates and introduces perceived lag in the ability system.
 	NetUpdateFrequency = 10.0f;
 
+	// Cache tags
 	StunCancelTags.AddTag(FGameplayTag::RequestGameplayTag("Ability"));
 	StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
+	DeadTag = FGameplayTag::RequestGameplayTag("Player.State.Dead");
+
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AWarlocksPlayerState::BeginPlay()
@@ -44,6 +51,16 @@ void AWarlocksPlayerState::BeginPlay()
 		{
 			AbilitySystemComponent->ApplyGameplayEffectToSelf(HealthRegenGE.GetDefaultObject(), 1, {});
 		}
+	}
+}
+
+void AWarlocksPlayerState::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (AbilitySystemComponent && IsDead() && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag)) // has just died
+	{
+		OnDeath();
 	}
 }
 
@@ -71,7 +88,7 @@ bool AWarlocksPlayerState::IsDead() const
 		UE_LOG(LogWarlocks, Error, TEXT("Tried to call IsDead() without a valid AttributeSet"));
 		return false;
 	}
-	
+
 	return AttributeSet->GetHealth() == 0;
 }
 
@@ -98,15 +115,15 @@ void AWarlocksPlayerState::ApplyDamage(const float Damage)
 
 void AWarlocksPlayerState::StartCheering()
 {
+	const FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag("Ability");
+	const FGameplayTagContainer AbilityTags(AbilityTag);
+	AbilitySystemComponent->CancelAbilities(&AbilityTags);
+
 	if (!CheerGE)
 	{
 		UE_LOG(LogWarlocks, Warning, TEXT("Tried to start cheering without CheerGE set to a valid GE"));
 		return;
 	}
-
-	const FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag("Player.State.Cheer");
-	const FGameplayTagContainer Tags(AbilityTag);
-	AbilitySystemComponent->CancelAbilities(&Tags);
 	AbilitySystemComponent->ApplyGameplayEffectToSelf(CheerGE.GetDefaultObject(), 1, {});
 }
 
@@ -188,7 +205,7 @@ AWarlocksPlayerState::MakeStartingAbilitySpec(const TSubclassOf<UGameplayAbility
 
 void AWarlocksPlayerState::AddStartingAbilities()
 {
-	// Grant abilities, but only on the server	
+	// Grant abilities, but only on the server, and as long as they haven't been granted yet
 	if (GetLocalRole() != ROLE_Authority
 		|| !IsValid(AbilitySystemComponent)
 		|| AbilitySystemComponent->bStartupAbilitiesGiven)
@@ -216,6 +233,25 @@ void AWarlocksPlayerState::AddStartingAbilities()
 		RAbilitySpec = MakeStartingAbilitySpec(RStartupAbility, EWarlocksAbilityInputID::AbilityR);
 		AbilitySystemComponent->GiveAbility(RAbilitySpec);
 	}
-	
+
 	AbilitySystemComponent->bStartupAbilitiesGiven = true;
+}
+
+void AWarlocksPlayerState::OnDeath()
+{
+	AbilitySystemComponent->ApplyGameplayEffectToSelf(DeathGE.GetDefaultObject(), 1, {});
+
+	if (const auto Controller = GetPlayerController())
+		Controller->StopMovement();
+
+	if (const auto State = Cast<AWarlocksGameState>(UGameplayStatics::GetGameState(GetWorld())))
+	{
+		for (const auto &Player : State->PlayerArray)
+		{
+			if (const auto Warlock = Cast<AWarlocksPlayerState>(Player); !Warlock->IsDead())
+			{
+				Warlock->SetScore(Warlock->GetScore() + 1);
+			}
+		}	
+	}
 }

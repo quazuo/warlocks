@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Actors/WarlocksAnnouncer.h"
 #include "WarlocksGameMode.generated.h"
 
 class AStaticMeshActor;
@@ -29,6 +30,9 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere)
 	class AWarlocksSafeZone* SafeZone;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AWarlocksAnnouncer> AnnouncerClass = AWarlocksAnnouncer::StaticClass();
 	
 	FTimerHandle RoundTransitionTimer;
 
