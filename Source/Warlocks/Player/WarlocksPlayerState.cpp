@@ -4,8 +4,10 @@
 #include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
 #include "Warlocks/Abilities/WarlocksAttributeSet.h"
 #include "AbilitySystemGlobals.h"
+#include "WarlocksPlayerController.h"
 #include "AI/NavigationSystemBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "Warlocks/Abilities/WarlocksGameplayAbility.h"
 #include "Warlocks/Game/WarlocksGameState.h"
 
@@ -194,6 +196,24 @@ FCooldownData AWarlocksPlayerState::GetAbilityCooldownData(const ESpell SpellSlo
 	}
 
 	return {CooldownRemaining, Ability->CooldownDuration};
+}
+
+void AWarlocksPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWarlocksPlayerState, QAbilitySpec);
+	DOREPLIFETIME(AWarlocksPlayerState, WAbilitySpec);
+	DOREPLIFETIME(AWarlocksPlayerState, EAbilitySpec);
+	DOREPLIFETIME(AWarlocksPlayerState, RAbilitySpec);
+}
+
+void AWarlocksPlayerState::OnRep_AbilitySpec() const
+{
+	if (const auto Controller = Cast<AWarlocksPlayerController>(GetPlayerController()))
+	{
+		Controller->UpdateAbilityUI();
+	}
 }
 
 FGameplayAbilitySpec

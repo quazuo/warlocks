@@ -16,4 +16,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<class UWarlocksAT_DelayTick> ChannelTask;
+
+	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
 };

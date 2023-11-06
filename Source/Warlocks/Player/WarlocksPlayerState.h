@@ -60,7 +60,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveStun();
-	
+
 	UFUNCTION(BlueprintCallable)
 	UGameplayAbility* GetAbilityInstance(const ESpell SpellSlot) const;
 
@@ -69,6 +69,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FCooldownData GetAbilityCooldownData(const ESpell SpellSlot) const;
+
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
 	UPROPERTY()
@@ -92,7 +95,20 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	const TSubclassOf<UGameplayAbility> RStartupAbility;
 
-	FGameplayAbilitySpec QAbilitySpec, WAbilitySpec, EAbilitySpec, RAbilitySpec;
+	UPROPERTY(ReplicatedUsing = OnRep_AbilitySpec)
+	FGameplayAbilitySpec QAbilitySpec;
+
+	UPROPERTY(ReplicatedUsing = OnRep_AbilitySpec)
+	FGameplayAbilitySpec WAbilitySpec;
+
+	UPROPERTY(ReplicatedUsing = OnRep_AbilitySpec)
+	FGameplayAbilitySpec EAbilitySpec;
+
+	UPROPERTY(ReplicatedUsing = OnRep_AbilitySpec)
+	FGameplayAbilitySpec RAbilitySpec;
+
+	UFUNCTION()
+	void OnRep_AbilitySpec() const;
 
 	FGameplayAbilitySpec MakeStartingAbilitySpec(const TSubclassOf<UGameplayAbility>& StartupAbility,
 	                                             EWarlocksAbilityInputID AbilityInputID);
@@ -113,7 +129,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGameplayEffect> DeathGE;
-	
+
 	FGameplayTag StunTag, DeadTag;
 
 	FGameplayTagContainer StunCancelTags;

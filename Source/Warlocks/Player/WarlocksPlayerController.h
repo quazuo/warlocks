@@ -15,6 +15,8 @@ class UInputMappingContext;
 	FORCEINLINE void Handle##Name##Pressed() { SendLocalInputToASC(true, EWarlocksAbilityInputID::##Name##); } \
 	FORCEINLINE void Handle##Name##Released() { SendLocalInputToASC(false, EWarlocksAbilityInputID::##Name##); }
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUpdateAbilityUIDelegate);
+
 UCLASS()
 class AWarlocksPlayerController : public APlayerController
 {
@@ -27,19 +29,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* MoveToAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* AbilityQAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* AbilityWAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* AbilityEAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true")) \
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* AbilityRAction;
 
 	// actions
@@ -50,10 +52,15 @@ public:
 	/** debug thing */
 	UFUNCTION()
 	void DoDebugThing();
-	
+
 	void RotateCharacter(const FRotator& Rotation);
 
+	void UpdateAbilityUI() const;
+
 protected:
+	UPROPERTY(BlueprintAssignable)
+	FUpdateAbilityUIDelegate OnGrantedAbilitiesDelegate;
+
 	virtual void SetupInputComponent() override;
 
 	virtual void BeginPlay() override;
@@ -61,11 +68,11 @@ protected:
 private:
 	void HandleMoveToPressed();
 	void HandleMoveToReleased();
-	
+
 	GAS_INPUT_HANDLERS(AbilityQ);
 	GAS_INPUT_HANDLERS(AbilityW);
 	GAS_INPUT_HANDLERS(AbilityE);
 	GAS_INPUT_HANDLERS(AbilityR);
-	
-	void SendLocalInputToASC(const bool bIsPressed, const EWarlocksAbilityInputID AbilityInputID);
+
+	void SendLocalInputToASC(const bool bIsPressed, const EWarlocksAbilityInputID AbilityInputID) const;
 };

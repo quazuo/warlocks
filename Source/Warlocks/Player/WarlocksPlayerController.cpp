@@ -39,7 +39,7 @@ void AWarlocksPlayerController::HandleMoveToReleased()
 }
 
 void AWarlocksPlayerController::SendLocalInputToASC(const bool bIsPressed,
-                                                    const EWarlocksAbilityInputID AbilityInputID)
+                                                    const EWarlocksAbilityInputID AbilityInputID) const
 {
 	const auto State = Cast<AWarlocksPlayerState>(PlayerState);
 	if (!State || !State->GetAbilitySystemComponent())
@@ -122,4 +122,9 @@ void AWarlocksPlayerController::RotateCharacter(const FRotator& Rotation)
 
 	ControlledCharacter->bUseControllerRotationPitch = false;
 	ControlledCharacter->bUseControllerRotationYaw = false;
+}
+
+void AWarlocksPlayerController::UpdateAbilityUI() const
+{
+	OnGrantedAbilitiesDelegate.Broadcast();
 }
