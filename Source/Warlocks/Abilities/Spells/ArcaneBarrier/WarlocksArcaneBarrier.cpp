@@ -34,6 +34,6 @@ void AWarlocksArcaneBarrier::OnHit(UPrimitiveComponent* OverlappedComponent, AAc
 	if (const auto Projectile = Cast<AWarlocksProjectile>(OtherActor))
 	{
 		Projectile->SpawnOnHitParticle();
-		OtherActor->Destroy();
+		Projectile->Destroy();
 	}
 }
