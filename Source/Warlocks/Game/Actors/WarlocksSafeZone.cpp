@@ -52,9 +52,12 @@ void AWarlocksSafeZone::StopSafeZoneShrinking()
 
 void AWarlocksSafeZone::ShrinkSafeZone()
 {
+	if (CurrentSafeZoneScale == MinSafeZoneScale)
+		return;
+
 	const float NewMeshScale = UKismetMathLibrary::Max(
 		MinSafeZoneScale,
-		Mesh->GetRelativeScale3D().X - SafeZoneShrinkDiff
+		CurrentSafeZoneScale - SafeZoneShrinkDiff
 	);
 	UpdateMeshScale(NewMeshScale);
 	UpdateCapsuleSize();
