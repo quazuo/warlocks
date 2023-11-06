@@ -264,18 +264,17 @@ void AWarlocksPlayerState::OnDeath()
 	if (const auto Controller = GetPlayerController())
 		Controller->StopMovement();
 
-	// cancel all abilities
 	AbilitySystemComponent->CancelAbilities();
 
-	// add score to all other players
 	if (const auto State = Cast<AWarlocksGameState>(UGameplayStatics::GetGameState(GetWorld())))
 	{
-		for (const auto &Player : State->PlayerArray)
+		for (const auto& Player : State->PlayerArray)
 		{
-			if (const auto Warlock = Cast<AWarlocksPlayerState>(Player); !Warlock->IsDead())
+			const auto Warlock = Cast<AWarlocksPlayerState>(Player);
+			if (!Warlock->IsDead())
 			{
 				Warlock->SetScore(Warlock->GetScore() + 1);
 			}
-		}	
+		}
 	}
 }

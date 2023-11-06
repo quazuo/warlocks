@@ -65,6 +65,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual void OnRep_Pawn() override;
+
 private:
 	void HandleMoveToPressed();
 	void HandleMoveToReleased();

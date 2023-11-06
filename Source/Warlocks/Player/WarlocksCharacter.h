@@ -26,12 +26,12 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 public:
-	UFUNCTION()
-	void ApplyKnockback(FVector Direction, const float Force);
-
 	TWeakObjectPtr<UWarlocksAbilitySystemComponent> AbilitySystemComponent;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	UFUNCTION()
+	void ApplyKnockback(FVector Direction, const float Force);
 
 private:
 	void BindAbilitiesToInput(UInputComponent* PlayerInputComponent) const;

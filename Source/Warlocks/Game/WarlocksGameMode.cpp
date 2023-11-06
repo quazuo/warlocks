@@ -96,15 +96,19 @@ void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)
 		}
 	}
 
-	if (const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn()))
+	if (WinnerState)
 	{
 		WinnerState->StartCheering();
 		WinnerState->ApplyStun();
-		Warlock->GetController()->StopMovement();
 
-		// rotate towards the camera (forwards)
-		const FVector Vec = {-1, 0, 0};
-		Warlock->SetActorRotation(Vec.Rotation());
+		if (const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn()))
+		{
+			Warlock->GetController()->StopMovement();
+
+			// rotate towards the camera (forwards)
+			const FVector Vec = {-1, 0, 0};
+			Warlock->SetActorRotation(Vec.Rotation());
+		}
 	}
 
 	FTimerDelegate RoundTransitionDelegate;

@@ -2,7 +2,6 @@
 
 #include "AbilitySystemComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"

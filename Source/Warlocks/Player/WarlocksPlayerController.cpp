@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "WarlocksPlayerState.h"
+#include "Navigation/PathFollowingComponent.h"
 
 AWarlocksPlayerController::AWarlocksPlayerController()
 {
@@ -57,6 +58,8 @@ void AWarlocksPlayerController::SendLocalInputToASC(const bool bIsPressed,
 
 void AWarlocksPlayerController::DoDebugThing()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, TEXT("Debug thing"));
+	
 	if (const auto Warlock = Cast<AWarlocksCharacter>(GetCharacter()))
 	{
 		Warlock->ApplyKnockback(FVector::ForwardVector, 1000);
@@ -71,6 +74,18 @@ void AWarlocksPlayerController::BeginPlay()
 		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+	}
+}
+
+void AWarlocksPlayerController::OnRep_Pawn()
+{
+	Super::OnRep_Pawn();
+
+	// invalidate path following component's cache to prevent a SimpleMove related bug.
+	// https://blog.jamesbrooks.net/posts/fixing-movement-not-allowed-for-respawned-pawns/
+	if (const auto PathFollowingComp = FindComponentByClass<UPathFollowingComponent>())
+	{ 
+		PathFollowingComp->UpdateCachedComponents();
 	}
 }
 
