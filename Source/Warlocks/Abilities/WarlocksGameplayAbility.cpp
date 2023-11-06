@@ -14,7 +14,14 @@ UWarlocksGameplayAbility::UWarlocksGameplayAbility()
 	ChannelTag = FGameplayTag::RequestGameplayTag("Player.State.Channel");
 
 	const FGameplayTag MoveTag = FGameplayTag::RequestGameplayTag("Ability.MoveTo");
+	const FGameplayTag SpellTag = FGameplayTag::RequestGameplayTag("Ability.Spell");
 	CancelAbilitiesWithTag.AddTag(MoveTag);
+	CancelAbilitiesWithTag.AddTag(SpellTag);
+
+	const FGameplayTag StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
+	const FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag("Player.State.Dead");
+	ActivationBlockedTags.AddTag(StunTag);
+	ActivationBlockedTags.AddTag(DeadTag);
 }
 
 void UWarlocksGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)

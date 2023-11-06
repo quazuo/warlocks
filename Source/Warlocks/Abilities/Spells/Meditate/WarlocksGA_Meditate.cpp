@@ -14,9 +14,6 @@ UWarlocksGA_Meditate::UWarlocksGA_Meditate()
 
 	const FGameplayTag MeditateTag = FGameplayTag::RequestGameplayTag("Ability.Spell.Meditate");
 	AbilityTags.AddTag(MeditateTag);
-
-	const FGameplayTag StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
-	ActivationBlockedTags.AddTag(StunTag);
 }
 
 void UWarlocksGA_Meditate::ActivateAbility(const FGameplayAbilitySpecHandle Handle,

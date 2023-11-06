@@ -15,9 +15,6 @@ UWarlocksGA_Fireball::UWarlocksGA_Fireball()
 
 	const FGameplayTag SpellTag = FGameplayTag::RequestGameplayTag("Ability.Spell.Fireball");
 	AbilityTags.AddTag(SpellTag);
-
-	const FGameplayTag StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
-	ActivationBlockedTags.AddTag(StunTag);
 }
 
 void UWarlocksGA_Fireball::ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,

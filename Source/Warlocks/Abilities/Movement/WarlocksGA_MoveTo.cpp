@@ -10,14 +10,6 @@ UWarlocksGA_MoveTo::UWarlocksGA_MoveTo()
 {
 	const FGameplayTag MoveTag = FGameplayTag::RequestGameplayTag("Ability.MoveTo");
 	AbilityTags.AddTag(MoveTag);
-
-	const FGameplayTag StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
-	const FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag("Player.State.Dead");
-	ActivationBlockedTags.AddTag(StunTag);
-	ActivationBlockedTags.AddTag(DeadTag);
-
-	const FGameplayTag SpellTag = FGameplayTag::RequestGameplayTag("Ability.Spell");
-	CancelAbilitiesWithTag.AddTag(SpellTag);
 }
 
 void UWarlocksGA_MoveTo::ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,

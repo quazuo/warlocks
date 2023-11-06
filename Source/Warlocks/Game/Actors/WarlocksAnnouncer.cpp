@@ -25,6 +25,12 @@ void AWarlocksAnnouncer::Server_AnnouncePlayerRoundVictory_Implementation(const 
 	Multicast_Announce(Announcement);
 }
 
+void AWarlocksAnnouncer::Server_AnnounceRoundTie_Implementation()
+{
+	const FText Announcement = GetAnnouncementString("RoundTie");
+	Multicast_Announce(Announcement);
+}
+
 void AWarlocksAnnouncer::Server_AnnounceSafeZoneShrink_Implementation()
 {
 	const FText Announcement = GetAnnouncementString("SafeZoneShrink");
@@ -55,8 +61,8 @@ FText AWarlocksAnnouncer::GetAnnouncementString(const FString& Key, const FForma
 {
 	if (!StringTable)
 	{
-		UE_LOG(LogWarlocks, Error, TEXT("No StringTable set for the Announcer"));
-		return FText::FromString("ERROR: check logs");
+		UE_LOG(LogWarlocks, Error, TEXT("No StringTable set for the Announcer actor"));
+		return FText::FromString("ERROR: MISSING STRINGTABLE");
 	}
 
 	const FString StringTableId = StringTable->GetStringTableId().ToString();

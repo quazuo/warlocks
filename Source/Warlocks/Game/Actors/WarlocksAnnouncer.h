@@ -17,6 +17,9 @@ public:
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void Server_AnnouncePlayerRoundVictory(const FText& PlayerName);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void Server_AnnounceRoundTie();
 	
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void Server_AnnounceSafeZoneShrink();

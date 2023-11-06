@@ -12,7 +12,7 @@
 AWarlocksGameMode::AWarlocksGameMode()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 	// use our custom PlayerController class
 	PlayerControllerClass = AWarlocksPlayerController::StaticClass();
 	PlayerStateClass = AWarlocksPlayerState::StaticClass();
@@ -24,7 +24,7 @@ AWarlocksGameMode::AWarlocksGameMode()
 void AWarlocksGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	StartRound();
 }
 
@@ -33,7 +33,7 @@ void AWarlocksGameMode::Tick(float DeltaSeconds)
 	int AlivePlayerCount = 0;
 	AWarlocksPlayerState* WinnerState = nullptr;
 
-	for (const auto &Player : GameState->PlayerArray)
+	for (const auto& Player : GameState->PlayerArray)
 	{
 		const auto WarlocksState = Cast<AWarlocksPlayerState>(Player);
 		if (WarlocksState && !WarlocksState->IsDead())
@@ -43,7 +43,7 @@ void AWarlocksGameMode::Tick(float DeltaSeconds)
 		}
 	}
 
-	if (!bIsRoundTransition && GameState->PlayerArray.Num() > 1 && AlivePlayerCount == 1 && WinnerState)
+	if (!bIsRoundTransition && GameState->PlayerArray.Num() > 1 && AlivePlayerCount <= 1)
 	{
 		bIsRoundTransition = true;
 		EndRound(WinnerState);
@@ -53,13 +53,13 @@ void AWarlocksGameMode::Tick(float DeltaSeconds)
 void AWarlocksGameMode::ResetPlayers()
 {
 	UE_LOG(LogGameMode, Error, TEXT("Restarting players..."));
-	
-	for (const auto &Player : GameState->PlayerArray)
+
+	for (const auto& Player : GameState->PlayerArray)
 	{
 		if (const auto WarlocksState = Cast<AWarlocksPlayerState>(Player))
 		{
 			WarlocksState->Reset();
-			
+
 			const auto Warlock = Cast<AWarlocksCharacter>(WarlocksState->GetPawn());
 			const auto CharacterController = Cast<AWarlocksPlayerController>(Warlock->GetController());
 
@@ -82,13 +82,20 @@ void AWarlocksGameMode::EndRound(AWarlocksPlayerState* WinnerState)
 	UE_LOG(LogGameMode, Error, TEXT("Ending round..."));
 
 	SafeZone->StopSafeZoneShrinking();
-	
+
 	if (const auto State = GetGameState<AWarlocksGameState>())
 	{
-		const FText PlayerName = FText::FromString(WinnerState->GetPlayerName());
-		State->GetAnnouncer()->Server_AnnouncePlayerRoundVictory(PlayerName);
+		if (WinnerState != nullptr)
+		{
+			const FText PlayerName = FText::FromString(WinnerState->GetPlayerName());
+			State->GetAnnouncer()->Server_AnnouncePlayerRoundVictory(PlayerName);
+		}
+		else
+		{
+			State->GetAnnouncer()->Server_AnnounceRoundTie();
+		}
 	}
-	
+
 	if (const auto Warlock = Cast<AWarlocksCharacter>(WinnerState->GetPawn()))
 	{
 		WinnerState->StartCheering();

@@ -13,12 +13,6 @@ UWarlocksGA_Flash::UWarlocksGA_Flash()
 
 	const FGameplayTag FlashTag = FGameplayTag::RequestGameplayTag("Ability.Spell.Flash");
 	AbilityTags.AddTag(FlashTag);
-
-	const FGameplayTag StunTag = FGameplayTag::RequestGameplayTag("Player.State.Stun");
-	ActivationBlockedTags.AddTag(StunTag);
-	
-	const FGameplayTag SpellTag = FGameplayTag::RequestGameplayTag("Ability.Spell");
-	CancelAbilitiesWithTag.AddTag(SpellTag);
 }
 
 void UWarlocksGA_Flash::ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
