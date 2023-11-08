@@ -10,8 +10,11 @@
 #include "WarlocksPlayerState.h"
 #include "Warlocks/Warlocks.h"
 #include "Warlocks/Abilities/WarlocksAbilitySystemComponent.h"
+#include "Movement/WarlocksCharacterMoveComponent.h"
 
-AWarlocksCharacter::AWarlocksCharacter()
+AWarlocksCharacter::AWarlocksCharacter(const FObjectInitializer& ObjectInitializer) :
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UWarlocksCharacterMoveComponent>(
+		CharacterMovementComponentName))
 {
 	GetCapsuleComponent()->InitCapsuleSize(42, 96);
 
@@ -20,46 +23,13 @@ AWarlocksCharacter::AWarlocksCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// configure character movement
-	const auto CharMove = GetCharacterMovement();
-	CharMove->bOrientRotationToMovement = true; // Rotate character to moving direction
-	CharMove->RotationRate = FRotator(0, 640, 0);
-	CharMove->bConstrainToPlane = true;
-	CharMove->bSnapToPlaneAtStart = true;
-	CharMove->MaxAcceleration = 100000;
-	CharMove->BrakingDecelerationWalking = 100000;
-	CharMove->GravityScale = 0; // don't stop falling until velocity == 0
-	CharMove->BrakingDecelerationFalling = 200;
-
-	// tick stuff
-	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = true;
+	// tick stuff: uncomment when adding tick function
+	// PrimaryActorTick.bCanEverTick = true;
+	// PrimaryActorTick.bStartWithTickEnabled = true;
 
 	// replication stuff
 	bReplicates = true;
 	Super::SetReplicateMovement(true);
-}
-
-void AWarlocksCharacter::Tick(const float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	// check if character should stop falling, if so change mode to walking
-	const auto CharMovement = GetCharacterMovement();
-	if (CharMovement->MovementMode == MOVE_Falling && CharMovement->Velocity.X == 0 && CharMovement->Velocity.Y == 0)
-	{
-		CharMovement->SetMovementMode(MOVE_Walking);
-
-		if (const auto MyController = GetController())
-		{
-			MyController->StopMovement();
-		}
-
-		if (const auto State = Cast<AWarlocksPlayerState>(GetPlayerState()))
-		{
-			State->RemoveStun();
-		}
-	}
 }
 
 void AWarlocksCharacter::ApplyKnockback(const FVector Direction, const float Force)
@@ -68,7 +38,7 @@ void AWarlocksCharacter::ApplyKnockback(const FVector Direction, const float For
 	{
 		GetController()->StopMovement();
 	}
-	
+
 	LaunchCharacter(Direction * Force, false, false);
 
 	if (const auto State = Cast<AWarlocksPlayerState>(GetPlayerState()))
@@ -93,24 +63,24 @@ void AWarlocksCharacter::PossessedBy(AController* NewController)
 
 void AWarlocksCharacter::BindAbilitiesToInput(UInputComponent* PlayerInputComponent) const
 {
- 	if (!PlayerInputComponent)
- 	{
- 		UE_LOG(LogWarlocks, Error, TEXT("BindAbilitiesToInput(): no PlayerInputComponent"));
- 		return;
- 	}
- 	
- 	if (!AbilitySystemComponent.IsValid())
-    {
-     	UE_LOG(LogWarlocks, Error, TEXT("BindAbilitiesToInput(): no valid AbilitySystemComponent"));
-     	return;
-    }
-	
+	if (!PlayerInputComponent)
+	{
+		UE_LOG(LogWarlocks, Error, TEXT("BindAbilitiesToInput(): no PlayerInputComponent"));
+		return;
+	}
+
+	if (!AbilitySystemComponent.IsValid())
+	{
+		UE_LOG(LogWarlocks, Error, TEXT("BindAbilitiesToInput(): no valid AbilitySystemComponent"));
+		return;
+	}
+
 	// Bind to AbilitySystemComponent
 	const FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(
 		FName("/Script/Warlocks"),
 		FName("EWarlocksAbilityInputID")
 	);
-	
+
 	const auto BindInfo = FGameplayAbilityInputBinds(
 		FString("ConfirmTarget"),
 		FString("CancelTarget"),
@@ -118,7 +88,7 @@ void AWarlocksCharacter::BindAbilitiesToInput(UInputComponent* PlayerInputCompon
 		static_cast<int32>(EWarlocksAbilityInputID::Confirm),
 		static_cast<int32>(EWarlocksAbilityInputID::Cancel)
 	);
-	
+
 	AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, BindInfo);
 }
 

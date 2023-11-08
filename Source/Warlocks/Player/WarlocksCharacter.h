@@ -14,11 +14,9 @@ class AWarlocksCharacter : public ACharacter, public IAbilitySystemInterface
 	GENERATED_BODY()
 
 public:
-	AWarlocksCharacter();
+	explicit AWarlocksCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
-	virtual void Tick(float DeltaSeconds) override;
-	
 	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void OnRep_PlayerState() override;

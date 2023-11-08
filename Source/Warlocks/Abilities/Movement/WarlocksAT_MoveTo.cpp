@@ -24,7 +24,7 @@ void UWarlocksAT_MoveTo::TickTask(const float DeltaTime)
 	Super::TickTask(DeltaTime);
 
 	const auto Character = Controller->GetCharacter();
-	const auto CharMovement = Character ? Controller->GetCharacter()->GetCharacterMovement() : nullptr;
+	const auto CharMovement = Character ? Character->GetCharacterMovement() : nullptr;
 	if (!CharMovement)
 		return;
 
@@ -37,7 +37,9 @@ void UWarlocksAT_MoveTo::TickTask(const float DeltaTime)
 		&& CharMovement->Velocity.X == 0
 		&& CharMovement->Velocity.Y == 0;
 
-	if (!UAIBlueprintHelperLibrary::GetCurrentPath(Controller) || DistanceLeft.IsNearlyZero(1) || bStoppedNotTrivially)
+	const bool bIsCurrentPath = !UAIBlueprintHelperLibrary::GetCurrentPathPoints(Controller).IsEmpty();
+
+	if (bIsCurrentPath || DistanceLeft.IsNearlyZero(1) || bStoppedNotTrivially)
 	{
 		OnMoveFinish();
 	}
