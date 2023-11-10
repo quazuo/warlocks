@@ -41,14 +41,10 @@ void UWarlocksGA_MoveTo::CancelAbility(const FGameplayAbilitySpecHandle Handle,
                                        const FGameplayAbilityActivationInfo ActivationInfo,
                                        bool bReplicateCancelAbility)
 {
-	UE_LOG(LogWarlocks, Error, TEXT("shit 1"))
-
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 
 	if (ActorInfo->PlayerController.IsValid())
 	{
-		UE_LOG(LogWarlocks, Error, TEXT("shit 2"))
-
 		ActorInfo->PlayerController->StopMovement();
 	}
 }

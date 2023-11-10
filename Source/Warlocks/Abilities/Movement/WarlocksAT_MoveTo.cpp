@@ -39,7 +39,7 @@ void UWarlocksAT_MoveTo::TickTask(const float DeltaTime)
 
 	const bool bIsCurrentPath = !UAIBlueprintHelperLibrary::GetCurrentPathPoints(Controller).IsEmpty();
 
-	if (bIsCurrentPath || DistanceLeft.IsNearlyZero(1) || bStoppedNotTrivially)
+	if (!bIsCurrentPath || DistanceLeft.IsNearlyZero(1) || bStoppedNotTrivially)
 	{
 		OnMoveFinish();
 	}
