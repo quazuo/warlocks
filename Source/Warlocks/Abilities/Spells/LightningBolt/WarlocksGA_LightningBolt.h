@@ -1,15 +1,16 @@
 #pragma once
 
-#include "Warlocks/Abilities/AbilityTypes/WarlocksGA_GroundTarget.h"
-#include "WarlocksGA_Flash.generated.h"
+#include "CoreMinimal.h"
+#include "Warlocks/Abilities/AbilityTypes/WarlocksGA_EnemyTarget.h"
+#include "WarlocksGA_LightningBolt.generated.h"
 
 UCLASS()
-class WARLOCKS_API UWarlocksGA_Flash final : public UWarlocksGA_GroundTarget
+class WARLOCKS_API UWarlocksGA_LightningBolt : public UWarlocksGA_EnemyTarget
 {
 	GENERATED_BODY()
 
 public:
-	UWarlocksGA_Flash();
+	UWarlocksGA_LightningBolt();
 
 	virtual void ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
 											   FGameplayTag ApplicationTag) override;
@@ -18,7 +19,7 @@ public:
 
 private:
 	UPROPERTY(EditDefaultsOnly)
-	UParticleSystem* OnCastParticle;
+	class UNiagaraSystem* OnCastParticle;
 
 	UPROPERTY(EditDefaultsOnly)
 	float Range;

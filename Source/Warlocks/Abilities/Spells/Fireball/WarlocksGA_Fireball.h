@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Warlocks/Abilities/WarlocksGA_GroundTarget.h"
+#include "Warlocks/Abilities/AbilityTypes/WarlocksGA_GroundTarget.h"
 #include "WarlocksGA_Fireball.generated.h"
 
 UCLASS()

@@ -13,10 +13,10 @@ UWarlocksGA_MoveTo::UWarlocksGA_MoveTo()
 }
 
 void UWarlocksGA_MoveTo::ActivateAbilityWithTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
-                                                         FGameplayTag ApplicationTag)
+                                                       FGameplayTag ApplicationTag)
 {
 	Super::ActivateAbilityWithTargetData(TargetDataHandle, ApplicationTag);
-	
+
 	const auto Controller = Cast<AWarlocksPlayerController>(CurrentActorInfo->PlayerController);
 	if (Controller)
 	{
@@ -27,9 +27,9 @@ void UWarlocksGA_MoveTo::ActivateAbilityWithTargetData(const FGameplayAbilityTar
 }
 
 void UWarlocksGA_MoveTo::ActivateLocalPlayerAbility(const FGameplayAbilitySpecHandle Handle,
-                                                      const FGameplayAbilityActorInfo* ActorInfo,
-                                                      const FGameplayAbilityActivationInfo ActivationInfo,
-                                                      const FGameplayEventData* TriggerEventData)
+                                                    const FGameplayAbilityActorInfo* ActorInfo,
+                                                    const FGameplayAbilityActivationInfo ActivationInfo,
+                                                    const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateLocalPlayerAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
@@ -37,13 +37,18 @@ void UWarlocksGA_MoveTo::ActivateLocalPlayerAbility(const FGameplayAbilitySpecHa
 }
 
 void UWarlocksGA_MoveTo::CancelAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	bool bReplicateCancelAbility)
+                                       const FGameplayAbilityActorInfo* ActorInfo,
+                                       const FGameplayAbilityActivationInfo ActivationInfo,
+                                       bool bReplicateCancelAbility)
 {
+	UE_LOG(LogWarlocks, Error, TEXT("shit 1"))
+
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 
 	if (ActorInfo->PlayerController.IsValid())
 	{
+		UE_LOG(LogWarlocks, Error, TEXT("shit 2"))
+
 		ActorInfo->PlayerController->StopMovement();
 	}
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "WarlocksGameplayAbility.h"
+#include "Warlocks/Abilities/WarlocksGameplayAbility.h"
 #include "WarlocksGA_ClientToServer.generated.h"
 
 UCLASS(Abstract)

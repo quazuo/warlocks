@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Warlocks/Abilities/WarlocksGA_GroundTarget.h"
+#include "Warlocks/Abilities/AbilityTypes/WarlocksGA_GroundTarget.h"
 #include "Abilities/GameplayAbility.h"
 #include "WarlocksGA_MoveTo.generated.h"
 
