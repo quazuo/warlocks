@@ -32,8 +32,11 @@ AWarlocksCharacter::AWarlocksCharacter(const FObjectInitializer& ObjectInitializ
 	Super::SetReplicateMovement(true);
 }
 
-void AWarlocksCharacter::ApplyKnockback(const FVector Direction, const float Force)
+void AWarlocksCharacter::ApplyKnockback(FVector Direction, const float Force)
 {
+	Direction.Z = 0;
+	Direction.Normalize();
+	
 	if (GetController())
 	{
 		GetController()->StopMovement();

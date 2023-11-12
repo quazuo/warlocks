@@ -5,6 +5,7 @@
 #include "NiagaraComponent.h"
 #include "Warlocks/Player/WarlocksCharacter.h"
 #include "Warlocks/Player/WarlocksPlayerController.h"
+#include "Warlocks/Player/WarlocksPlayerState.h"
 
 UWarlocksGA_LightningBolt::UWarlocksGA_LightningBolt()
 {
@@ -45,19 +46,25 @@ void UWarlocksGA_LightningBolt::OnSpellCastFinish(FGameplayTag EventTag, FGamepl
 		return;
 	}
 
+	const FVector CasterLocation = Warlock->GetActorLocation();
+	const FVector TargetLocation = CachedTarget->GetActorLocation();
+	const FVector Direction = TargetLocation - CasterLocation;
+	
 	if (OnCastParticle)
 	{
-		const FVector CasterLocation = Warlock->GetActorLocation();
-		const FVector TargetLocation = CachedTarget->GetActorLocation();
-
 		UNiagaraComponent* Particle =
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), OnCastParticle, CasterLocation);
-		Particle->SetVectorParameter("BeamEnd", TargetLocation - CasterLocation); // relative location
+		Particle->SetVectorParameter("BeamEnd", Direction); // relative location
 	}
 
 	if (CurrentActorInfo->IsNetAuthority())
 	{
-		// todo - actually apply ability
+		CachedTarget->ApplyKnockback(Direction, Knockback);
+
+		if (const auto State = CachedTarget->GetPlayerState<AWarlocksPlayerState>())
+		{
+			State->ApplyDamage(Power);
+		}
 	}
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
